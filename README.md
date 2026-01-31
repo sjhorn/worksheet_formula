@@ -163,6 +163,27 @@ The `TEXT` function supports Excel-style format codes:
 
 All Excel-compatible error types are supported: `#DIV/0!`, `#VALUE!`, `#REF!`, `#NAME?`, `#NUM!`, `#N/A`, `#NULL!`, `#CALC!`, `#CIRCULAR!`
 
+## Examples
+
+### Standalone Dart
+
+[`example/worksheet_formula_example.dart`](example/worksheet_formula_example.dart) -- a pure Dart example demonstrating parsing, evaluation, cell references, dependency tracking, custom functions, and conditional logic. No Flutter required.
+
+```bash
+dart run example/worksheet_formula_example.dart
+```
+
+### Flutter + Worksheet Widget
+
+[`example/worksheet_integration/`](example/worksheet_integration/) -- a Flutter app integrating `worksheet_formula` with the [`worksheet`](https://pub.dev/packages/worksheet) widget. Shows formula cells evaluated live in a spreadsheet grid with dependency tracking, caching, and a custom `DISCOUNT` function.
+
+```bash
+cd example/worksheet_integration
+flutter run
+```
+
+See the [integration README](example/worksheet_integration/README.md) for architecture details.
+
 ## License
 
 See [LICENSE](LICENSE) file.
