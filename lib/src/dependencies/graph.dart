@@ -48,52 +48,70 @@ class DependencyGraph {
   /// Get all cells that need recalculation when a cell changes.
   ///
   /// Returns cells in topological order (dependencies before dependents).
+  /// Uses iterative DFS to avoid stack overflow with deep chains.
   List<A1> getCellsToRecalculate(A1 changedCell) {
     final result = <A1>[];
     final visited = <A1>{};
     final inProgress = <A1>{};
 
-    void visit(A1 cell) {
-      if (visited.contains(cell)) return;
+    // Iterative post-order DFS using explicit stack
+    final stack = <(A1, bool)>[]; // (cell, expanded)
+    for (final dependent in _dependents[changedCell] ?? <A1>{}) {
+      stack.add((dependent, false));
+    }
+
+    while (stack.isNotEmpty) {
+      final (cell, expanded) = stack.removeLast();
+
+      if (visited.contains(cell)) continue;
+
+      if (expanded) {
+        // All children have been processed
+        inProgress.remove(cell);
+        visited.add(cell);
+        result.add(cell);
+        continue;
+      }
+
       if (inProgress.contains(cell)) {
-        // Circular dependency detected - skip but don't throw
-        return;
+        // Circular dependency detected - skip
+        continue;
       }
 
       inProgress.add(cell);
+      // Push this cell again as "expanded" (will be processed after children)
+      stack.add((cell, true));
 
+      // Push children
       for (final dependent in _dependents[cell] ?? <A1>{}) {
-        visit(dependent);
+        if (!visited.contains(dependent)) {
+          stack.add((dependent, false));
+        }
       }
-
-      inProgress.remove(cell);
-      visited.add(cell);
-      result.add(cell);
-    }
-
-    for (final dependent in _dependents[changedCell] ?? <A1>{}) {
-      visit(dependent);
     }
 
     return result.reversed.toList();
   }
 
   /// Check if there's a circular reference involving the given cell.
+  /// Uses iterative DFS to avoid stack overflow with deep chains.
   bool hasCircularReference(A1 cell) {
     final visited = <A1>{};
+    final stack = <A1>[cell];
 
-    bool visit(A1 current, A1 target) {
-      if (current == target && visited.isNotEmpty) return true;
-      if (visited.contains(current)) return false;
+    while (stack.isNotEmpty) {
+      final current = stack.removeLast();
+
+      if (current == cell && visited.isNotEmpty) return true;
+      if (visited.contains(current)) continue;
       visited.add(current);
 
       for (final dep in _dependencies[current] ?? <A1>{}) {
-        if (visit(dep, target)) return true;
+        stack.add(dep);
       }
-      return false;
     }
 
-    return visit(cell, cell);
+    return false;
   }
 
   /// Clear all dependency information.
