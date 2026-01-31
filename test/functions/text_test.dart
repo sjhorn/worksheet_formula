@@ -288,5 +288,69 @@ void main() {
       ]);
       expect(result, const ErrorValue(FormulaError.value));
     });
+
+    test('format 0.00 gives two decimal places', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(3.14159),
+        const TextNode('0.00'),
+      ]);
+      expect(result, const TextValue('3.14'));
+    });
+
+    test('format #,##0 adds thousands separator', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(1234567),
+        const TextNode('#,##0'),
+      ]);
+      expect(result, const TextValue('1,234,567'));
+    });
+
+    test('format 0% shows percentage', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(0.75),
+        const TextNode('0%'),
+      ]);
+      expect(result, const TextValue('75%'));
+    });
+
+    test('format 0.0% shows percentage with decimal', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(0.756),
+        const TextNode('0.0%'),
+      ]);
+      expect(result, const TextValue('75.6%'));
+    });
+
+    test('format 0 shows leading zeros with 000', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(5),
+        const TextNode('000'),
+      ]);
+      expect(result, const TextValue('005'));
+    });
+
+    test('format 0.0E+0 scientific notation', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(1234),
+        const TextNode('0.0E+0'),
+      ]);
+      expect(result, const TextValue('1.2E+3'));
+    });
+
+    test('format #,##0.00 combined', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(1234.5),
+        const TextNode('#,##0.00'),
+      ]);
+      expect(result, const TextValue('1,234.50'));
+    });
+
+    test('format # no leading zeros for small fraction', () {
+      final result = eval(registry.get('TEXT')!, [
+        const NumberNode(0.5),
+        const TextNode('#.##'),
+      ]);
+      expect(result, const TextValue('.5'));
+    });
   });
 }

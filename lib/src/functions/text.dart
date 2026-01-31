@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../ast/nodes.dart';
 import '../evaluation/context.dart';
 import '../evaluation/errors.dart';
@@ -210,7 +212,137 @@ class TextFunction extends FormulaFunction {
       return const FormulaValue.error(FormulaError.value);
     }
 
-    // Simplified format handling - returns number as string
-    return FormulaValue.text(number.toString());
+    final format = values[1].toText();
+    return FormulaValue.text(_formatNumber(number.toDouble(), format));
   }
+}
+
+/// Format a number according to an Excel-style format code.
+String _formatNumber(double number, String format) {
+  // Check for percentage
+  final isPercent = format.contains('%');
+  if (isPercent) {
+    number = number * 100;
+    format = format.replaceAll('%', '');
+  }
+
+  // Check for scientific notation
+  final sciMatch = RegExp(r'(.*?)E([+-])(.*)$', caseSensitive: false)
+      .firstMatch(format);
+  if (sciMatch != null) {
+    final result = _formatScientific(number, sciMatch);
+    return isPercent ? '$result%' : result;
+  }
+
+  // Check for thousands separator
+  final useThousands = format.contains(',');
+  format = format.replaceAll(',', '');
+
+  // Split into integer and decimal format parts
+  final parts = format.split('.');
+  final intFormat = parts[0];
+  final decFormat = parts.length > 1 ? parts[1] : null;
+
+  // Determine decimal places
+  final decimalPlaces = decFormat?.length ?? 0;
+
+  // Round number
+  String numStr;
+  if (decimalPlaces > 0) {
+    numStr = number.toStringAsFixed(decimalPlaces);
+  } else {
+    numStr = number.round().toString();
+  }
+
+  // Handle negative
+  final isNegative = numStr.startsWith('-');
+  if (isNegative) numStr = numStr.substring(1);
+
+  // Split result into integer and decimal parts
+  final numParts = numStr.split('.');
+  var intPart = numParts[0];
+  var decPart = numParts.length > 1 ? numParts[1] : '';
+
+  // Strip trailing zeros from decimal part when format uses '#'
+  if (decFormat != null) {
+    // Count required decimal digits (0s) from the right
+    final minDecDigits = decFormat.replaceAll('#', '').length;
+    while (decPart.length > minDecDigits && decPart.endsWith('0')) {
+      decPart = decPart.substring(0, decPart.length - 1);
+    }
+  }
+
+  // Zero-pad integer part (count '0' chars in intFormat)
+  final minIntDigits = intFormat.replaceAll('#', '').length;
+  while (intPart.length < minIntDigits) {
+    intPart = '0$intPart';
+  }
+
+  // Strip leading zeros for '#' format
+  if (intFormat.isNotEmpty && intFormat[0] == '#') {
+    intPart = intPart.replaceFirst(RegExp(r'^0+'), '');
+  }
+
+  // Add thousands separators
+  if (useThousands && intPart.length > 3) {
+    final buffer = StringBuffer();
+    for (var i = 0; i < intPart.length; i++) {
+      if (i > 0 && (intPart.length - i) % 3 == 0) {
+        buffer.write(',');
+      }
+      buffer.write(intPart[i]);
+    }
+    intPart = buffer.toString();
+  }
+
+  // Assemble result
+  var result = isNegative ? '-$intPart' : intPart;
+  if (decFormat != null) result += '.$decPart';
+  if (isPercent) result += '%';
+  return result;
+}
+
+/// Format a number in scientific notation.
+String _formatScientific(double number, RegExpMatch sciMatch) {
+  final mantissaFormat = sciMatch.group(1)!;
+  final sign = sciMatch.group(2)!;
+  final expFormat = sciMatch.group(3)!;
+
+  if (number == 0) {
+    final decPlaces = mantissaFormat.contains('.')
+        ? mantissaFormat.split('.')[1].length
+        : 0;
+    final mantissa = decPlaces > 0 ? '0.${'0' * decPlaces}' : '0';
+    return '${mantissa}E${sign}0';
+  }
+
+  // Calculate exponent
+  final exp = (math.log(number.abs()) / math.ln10).floor();
+  final mantissa = number / _pow10(exp);
+
+  // Format mantissa
+  final decPlaces = mantissaFormat.contains('.')
+      ? mantissaFormat.split('.')[1].length
+      : 0;
+  final mantissaStr = mantissa.toStringAsFixed(decPlaces);
+
+  // Format exponent
+  final absExp = exp.abs();
+  var expStr = absExp.toString();
+  final minExpDigits = expFormat.replaceAll('#', '').length;
+  while (expStr.length < minExpDigits) {
+    expStr = '0$expStr';
+  }
+
+  final expSign = exp >= 0 ? '+' : '-';
+  return '${mantissaStr}E$expSign$expStr';
+}
+
+double _pow10(int exp) {
+  var result = 1.0;
+  final absExp = exp.abs();
+  for (var i = 0; i < absExp; i++) {
+    result *= 10;
+  }
+  return exp >= 0 ? result : 1 / result;
 }
