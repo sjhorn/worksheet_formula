@@ -23,11 +23,40 @@ class FormulaParser {
       return result.value;
     } else {
       throw FormulaParseException(
-        message: result.message,
+        message: _improveErrorMessage(result.message, result.position, formula),
         position: result.position,
         formula: formula,
       );
     }
+  }
+
+  /// Post-process petitparser error messages for better diagnostics.
+  String _improveErrorMessage(
+    String originalMessage,
+    int position,
+    String formula,
+  ) {
+    // "end of input expected" means extra characters after a complete expression
+    if (originalMessage.contains('end of input expected')) {
+      if (position < formula.length && formula[position] == ')') {
+        return 'Unexpected closing parenthesis at position $position';
+      }
+      return 'Unexpected character at position $position';
+    }
+
+    // Check for unmatched parentheses
+    final openCount = '('.allMatches(formula).length;
+    final closeCount = ')'.allMatches(formula).length;
+    if (openCount > closeCount) {
+      return 'Unexpected end of formula: missing closing ")"';
+    }
+
+    // At or past end of input
+    if (position >= formula.length) {
+      return 'Unexpected end of formula';
+    }
+
+    return originalMessage;
   }
 
   /// Try to parse a formula, returning null on failure.
@@ -256,6 +285,8 @@ class FormulaParseException implements Exception {
   });
 
   @override
-  String toString() =>
-      'FormulaParseException: $message at position $position in "$formula"';
+  String toString() {
+    final pointer = '${' ' * position}^';
+    return 'FormulaParseException: $message\n  $formula\n  $pointer';
+  }
 }

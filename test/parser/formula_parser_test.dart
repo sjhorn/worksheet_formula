@@ -375,4 +375,64 @@ void main() {
       }
     });
   });
+
+  group('descriptive error messages', () {
+    test('truncated formula shows unexpected end', () {
+      try {
+        parser.parse('=SUM(');
+        fail('Should have thrown');
+      } on FormulaParseException catch (e) {
+        expect(
+          e.message.toLowerCase(),
+          anyOf(contains('unexpected end'), contains('end of')),
+        );
+      }
+    });
+
+    test('unmatched opening parenthesis', () {
+      try {
+        parser.parse('=(1+2');
+        fail('Should have thrown');
+      } on FormulaParseException catch (e) {
+        expect(
+          e.message.toLowerCase(),
+          anyOf(
+            contains('parenthesis'),
+            contains('expected'),
+            contains('end of'),
+          ),
+        );
+      }
+    });
+
+    test('extra closing parenthesis', () {
+      try {
+        parser.parse('=1+2)');
+        fail('Should have thrown');
+      } on FormulaParseException catch (e) {
+        expect(e.position, greaterThan(0));
+        expect(e.message.toLowerCase(), contains('unexpected'));
+      }
+    });
+
+    test('incomplete expression', () {
+      try {
+        parser.parse('=1+');
+        fail('Should have thrown');
+      } on FormulaParseException catch (e) {
+        expect(e.position, greaterThan(0));
+      }
+    });
+
+    test('toString includes visual pointer', () {
+      try {
+        parser.parse('=1+2)');
+        fail('Should have thrown');
+      } on FormulaParseException catch (e) {
+        final str = e.toString();
+        expect(str, contains('^'));
+        expect(str, contains('=1+2)'));
+      }
+    });
+  });
 }
