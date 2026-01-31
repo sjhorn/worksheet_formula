@@ -1,14 +1,13 @@
 name: worksheet_formula
-description: A sample command-line application.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+description: A standalone formula engine for spreadsheet-like calculations
+version: 0.1.0
 
 environment:
   sdk: ^3.10.7
 
-# Add regular dependencies here.
 dependencies:
-  path: ^1.9.0
+  a1: ^2.0.0
+  petitparser: ^6.1.0
 
 dev_dependencies:
   lints: ^6.0.0

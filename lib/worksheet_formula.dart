@@ -1,3 +1,2 @@
-int calculate() {
-  return 6 * 7;
-}
+/// A standalone formula engine for spreadsheet-like calculations.
+library;
