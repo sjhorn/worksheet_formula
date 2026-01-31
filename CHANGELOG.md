@@ -8,6 +8,8 @@
 - **Performance benchmarks**: Parse, evaluate, and dependency graph benchmarks
 - **Iterative graph traversal**: DependencyGraph uses iterative DFS to handle deep cell chains
 - **Worksheet example**: Runnable example demonstrating full API usage
+- **Flutter integration example**: Standalone Flutter app integrating with the `worksheet` widget
+- **MIT license**
 
 ## 0.1.0
 

@@ -1,6 +1,12 @@
 name: worksheet_formula
-description: A standalone formula engine for spreadsheet-like calculations
+description: A standalone formula engine for spreadsheet-like calculations in Dart. Excel/Google Sheets compatible parsing, 43 built-in functions, dependency tracking, and custom function registration.
 version: 0.2.0
+repository: https://github.com/sjhorn/worksheet_formula
+topics:
+  - spreadsheet
+  - formula
+  - excel
+  - parser
 
 environment:
   sdk: ^3.10.7
