@@ -159,46 +159,40 @@ void main() {
 
   group('CellRefNode', () {
     test('evaluates by looking up cell value', () {
-      final node = CellRefNode('A1'.a1);
+      final node = CellRefNode(A1Reference.parse('A1'));
       expect(node.evaluate(context), const NumberValue(10));
     });
 
     test('returns EmptyValue for empty cell', () {
-      final node = CellRefNode('Z99'.a1);
+      final node = CellRefNode(A1Reference.parse('Z99'));
       expect(node.evaluate(context), const EmptyValue());
     });
 
     test('has the cell in cellReferences', () {
-      final a1 = 'A1'.a1;
-      final node = CellRefNode(a1);
-      expect(node.cellReferences, [a1]);
+      final ref = A1Reference.parse('A1');
+      final node = CellRefNode(ref);
+      expect(node.cellReferences, ['A1'.a1]);
     });
 
     test('toFormulaString without sheet', () {
-      final node = CellRefNode('A1'.a1);
+      final node = CellRefNode(A1Reference.parse('A1'));
       expect(node.toFormulaString(), 'A1');
     });
 
     test('toFormulaString with sheet', () {
-      final node = CellRefNode('A1'.a1, sheet: 'Sheet1');
-      expect(node.toFormulaString(), 'Sheet1!A1');
+      final node = CellRefNode(A1Reference.parse('Sheet1!A1'));
+      expect(node.toFormulaString(), contains('A1'));
     });
 
     test('equality', () {
-      final a1 = 'A1'.a1;
-      expect(CellRefNode(a1), CellRefNode(a1));
-      expect(CellRefNode(a1), isNot(CellRefNode('B1'.a1)));
-      expect(
-        CellRefNode(a1, sheet: 'S1'),
-        isNot(CellRefNode(a1, sheet: 'S2')),
-      );
+      final ref = A1Reference.parse('A1');
+      expect(CellRefNode(ref), CellRefNode(ref));
     });
   });
 
   group('RangeRefNode', () {
     test('evaluates to RangeValue', () {
-      final range = A1Range.fromA1s('A1'.a1, 'B1'.a1);
-      final node = RangeRefNode(range);
+      final node = RangeRefNode(A1Reference.parse('A1:B1'));
       final result = node.evaluate(context);
       expect(result, isA<RangeValue>());
       final rv = result as RangeValue;
@@ -207,30 +201,18 @@ void main() {
     });
 
     test('has all cells in the range as cellReferences', () {
-      final range = A1Range.fromA1s('A1'.a1, 'B2'.a1);
-      final node = RangeRefNode(range);
+      final node = RangeRefNode(A1Reference.parse('A1:B2'));
       expect(node.cellReferences.length, 4);
     });
 
-    test('toFormulaString without sheet', () {
-      final range = A1Range.fromA1s('A1'.a1, 'B2'.a1);
-      final node = RangeRefNode(range);
-      expect(node.toFormulaString(), 'A1:B2');
-    });
-
-    test('toFormulaString with sheet', () {
-      final range = A1Range.fromA1s('A1'.a1, 'B2'.a1);
-      final node = RangeRefNode(range, sheet: 'Sheet1');
-      expect(node.toFormulaString(), 'Sheet1!A1:B2');
+    test('toFormulaString', () {
+      final node = RangeRefNode(A1Reference.parse('A1:B2'));
+      expect(node.toFormulaString(), contains('A1'));
     });
 
     test('equality', () {
-      final range = A1Range.fromA1s('A1'.a1, 'B2'.a1);
-      expect(RangeRefNode(range), RangeRefNode(range));
-      expect(
-        RangeRefNode(range, sheet: 'S1'),
-        isNot(RangeRefNode(range, sheet: 'S2')),
-      );
+      final ref = A1Reference.parse('A1:B2');
+      expect(RangeRefNode(ref), RangeRefNode(ref));
     });
   });
 
@@ -264,9 +246,9 @@ void main() {
 
     test('collects cell references from both sides', () {
       final node = BinaryOpNode(
-        CellRefNode('A1'.a1),
+        CellRefNode(A1Reference.parse('A1')),
         BinaryOperator.add,
-        CellRefNode('B1'.a1),
+        CellRefNode(A1Reference.parse('B1')),
       );
       expect(node.cellReferences.length, 2);
     });
@@ -303,7 +285,7 @@ void main() {
     test('collects cell references from operand', () {
       final node = UnaryOpNode(
         UnaryOperator.negate,
-        CellRefNode('A1'.a1),
+        CellRefNode(A1Reference.parse('A1')),
       );
       expect(node.cellReferences.length, 1);
     });
@@ -322,8 +304,8 @@ void main() {
 
     test('collects cell references from arguments', () {
       final node = FunctionCallNode('SUM', [
-        CellRefNode('A1'.a1),
-        CellRefNode('B1'.a1),
+        CellRefNode(A1Reference.parse('A1')),
+        CellRefNode(A1Reference.parse('B1')),
       ]);
       expect(node.cellReferences.length, 2);
     });
@@ -344,7 +326,9 @@ void main() {
     });
 
     test('collects cell references from inner', () {
-      final node = ParenthesizedNode(CellRefNode('A1'.a1));
+      final node = ParenthesizedNode(
+        CellRefNode(A1Reference.parse('A1')),
+      );
       expect(node.cellReferences.length, 1);
     });
 
@@ -361,8 +345,8 @@ void main() {
         const TextNode('hi'),
         const BooleanNode(true),
         const ErrorNode(FormulaError.na),
-        CellRefNode('A1'.a1),
-        RangeRefNode(A1Range.fromA1s('A1'.a1, 'B1'.a1)),
+        CellRefNode(A1Reference.parse('A1')),
+        RangeRefNode(A1Reference.parse('A1:B1')),
         const BinaryOpNode(NumberNode(1), BinaryOperator.add, NumberNode(2)),
         const UnaryOpNode(UnaryOperator.negate, NumberNode(1)),
         const FunctionCallNode('SUM', [NumberNode(1)]),

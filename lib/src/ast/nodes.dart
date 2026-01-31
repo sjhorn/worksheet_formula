@@ -12,7 +12,7 @@ sealed class FormulaNode {
   /// Evaluate this node given an evaluation context.
   FormulaValue evaluate(EvaluationContext context);
 
-  /// Get all cell/range references in this node (for dependency tracking).
+  /// Get all cell references in this node (for dependency tracking).
   Iterable<A1> get cellReferences;
 
   /// Get the formula string representation.
@@ -106,45 +106,50 @@ class ErrorNode extends FormulaNode {
 
 /// Cell reference: A1, $B$2, Sheet1!C3
 class CellRefNode extends FormulaNode {
-  final A1 cell;
-  final String? sheet;
+  final A1Reference reference;
 
-  const CellRefNode(this.cell, {this.sheet});
-
-  @override
-  FormulaValue evaluate(EvaluationContext context) =>
-      context.getCellValue(cell);
+  const CellRefNode(this.reference);
 
   @override
-  Iterable<A1> get cellReferences => [cell];
+  FormulaValue evaluate(EvaluationContext context) {
+    final cell = reference.from.a1;
+    if (cell == null) return const FormulaValue.error(FormulaError.ref);
+    return context.getCellValue(cell);
+  }
 
   @override
-  String toFormulaString() =>
-      sheet != null ? '$sheet!$cell' : cell.toString();
+  Iterable<A1> get cellReferences {
+    final cell = reference.from.a1;
+    return cell != null ? [cell] : const [];
+  }
+
+  @override
+  String toFormulaString() => reference.toString();
 
   @override
   bool operator ==(Object other) =>
-      other is CellRefNode && other.cell == cell && other.sheet == sheet;
+      other is CellRefNode && other.reference == reference;
 
   @override
-  int get hashCode => Object.hash(cell, sheet);
+  int get hashCode => reference.hashCode;
 }
 
 /// Range reference: A1:B10, Sheet1!A1:C3
 class RangeRefNode extends FormulaNode {
-  final A1Range range;
-  final String? sheet;
+  final A1Reference reference;
 
-  const RangeRefNode(this.range, {this.sheet});
+  const RangeRefNode(this.reference);
 
   @override
-  FormulaValue evaluate(EvaluationContext context) =>
-      context.getRangeValues(range);
+  FormulaValue evaluate(EvaluationContext context) {
+    final range = reference.range;
+    return context.getRangeValues(range);
+  }
 
   @override
   Iterable<A1> get cellReferences {
-    final from = range.from.a1;
-    final to = range.to.a1;
+    final from = reference.from.a1;
+    final to = reference.to.a1;
     if (from == null || to == null) return const [];
     final cells = <A1>[];
     for (var row = from.row; row <= to.row; row++) {
@@ -156,15 +161,14 @@ class RangeRefNode extends FormulaNode {
   }
 
   @override
-  String toFormulaString() =>
-      sheet != null ? '$sheet!$range' : range.toString();
+  String toFormulaString() => reference.toString();
 
   @override
   bool operator ==(Object other) =>
-      other is RangeRefNode && other.range == range && other.sheet == sheet;
+      other is RangeRefNode && other.reference == reference;
 
   @override
-  int get hashCode => Object.hash(range, sheet);
+  int get hashCode => reference.hashCode;
 }
 
 /// Binary operation: A1 + B1, 2 * 3, "a" & "b"
