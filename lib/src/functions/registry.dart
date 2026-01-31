@@ -1,6 +1,7 @@
 import 'function.dart';
 import 'logical.dart';
 import 'math.dart';
+import 'statistical.dart';
 import 'text.dart';
 
 /// Registry of available formula functions.
@@ -13,6 +14,7 @@ class FunctionRegistry {
       registerMathFunctions(this);
       registerLogicalFunctions(this);
       registerTextFunctions(this);
+      registerStatisticalFunctions(this);
     }
   }
 
