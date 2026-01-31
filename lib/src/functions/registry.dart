@@ -1,5 +1,6 @@
 import 'function.dart';
 import 'logical.dart';
+import 'lookup.dart';
 import 'math.dart';
 import 'statistical.dart';
 import 'text.dart';
@@ -15,6 +16,7 @@ class FunctionRegistry {
       registerLogicalFunctions(this);
       registerTextFunctions(this);
       registerStatisticalFunctions(this);
+      registerLookupFunctions(this);
     }
   }
 
