@@ -28,6 +28,19 @@ void registerTextFunctions(FunctionRegistry registry) {
     TextJoinFunction(),
     ProperFunction(),
     ExactFunction(),
+    ReptFunction(),
+    CharFunction(),
+    CodeFunction(),
+    CleanFunction(),
+    DollarFunction(),
+    FixedFunction(),
+    TFunction(),
+    NumberValueFunction(),
+    UnicharFunction(),
+    UnicodeFunction(),
+    TextBeforeFunction(),
+    TextAfterFunction(),
+    TextSplitFunction(),
   ]);
 }
 
@@ -621,4 +634,464 @@ double _pow10(int exp) {
     result *= 10;
   }
   return exp >= 0 ? result : 1 / result;
+}
+
+/// REPT(text, number_times) - Repeats text a given number of times.
+class ReptFunction extends FormulaFunction {
+  @override
+  String get name => 'REPT';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final text = values[0].toText();
+    final count = values[1].toNumber()?.toInt();
+    if (count == null) return const FormulaValue.error(FormulaError.value);
+    if (count < 0) return const FormulaValue.error(FormulaError.value);
+    return FormulaValue.text(text * count);
+  }
+}
+
+/// CHAR(number) - Returns the character specified by the code number.
+class CharFunction extends FormulaFunction {
+  @override
+  String get name => 'CHAR';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final n = value.toNumber()?.toInt();
+    if (n == null) return const FormulaValue.error(FormulaError.value);
+    if (n < 1 || n > 255) return const FormulaValue.error(FormulaError.value);
+    return FormulaValue.text(String.fromCharCode(n));
+  }
+}
+
+/// CODE(text) - Returns a numeric code for the first character.
+class CodeFunction extends FormulaFunction {
+  @override
+  String get name => 'CODE';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final text = value.toText();
+    if (text.isEmpty) return const FormulaValue.error(FormulaError.value);
+    return FormulaValue.number(text.codeUnitAt(0));
+  }
+}
+
+/// CLEAN(text) - Removes non-printable characters (codes 0-31).
+class CleanFunction extends FormulaFunction {
+  @override
+  String get name => 'CLEAN';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final text = value.toText();
+    return FormulaValue.text(text.replaceAll(RegExp(r'[\x00-\x1F]'), ''));
+  }
+}
+
+/// DOLLAR(number, [decimals]) - Formats a number as currency.
+class DollarFunction extends FormulaFunction {
+  @override
+  String get name => 'DOLLAR';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final number = values[0].toNumber()?.toDouble();
+    if (number == null) return const FormulaValue.error(FormulaError.value);
+    final decimals = args.length > 1 ? values[1].toNumber()?.toInt() ?? 2 : 2;
+
+    String formatted;
+    if (decimals >= 0) {
+      final multiplier = math.pow(10, decimals);
+      final rounded = (number.abs() * multiplier).round() / multiplier;
+      formatted = rounded.toStringAsFixed(decimals);
+    } else {
+      final factor = math.pow(10, -decimals).toInt();
+      final rounded = (number.abs() / factor).round() * factor;
+      formatted = rounded.toString();
+    }
+
+    // Add thousands separators to integer part
+    final parts = formatted.split('.');
+    var intPart = parts[0];
+    if (intPart.length > 3) {
+      final buffer = StringBuffer();
+      for (var i = 0; i < intPart.length; i++) {
+        if (i > 0 && (intPart.length - i) % 3 == 0) buffer.write(',');
+        buffer.write(intPart[i]);
+      }
+      intPart = buffer.toString();
+    }
+
+    final formatted2 =
+        parts.length > 1 ? '\$$intPart.${parts[1]}' : '\$$intPart';
+    if (number < 0) return FormulaValue.text('($formatted2)');
+    return FormulaValue.text(formatted2);
+  }
+}
+
+/// FIXED(number, decimals, [no_commas]) - Formats a number with fixed decimals.
+class FixedFunction extends FormulaFunction {
+  @override
+  String get name => 'FIXED';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 3;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final number = values[0].toNumber()?.toDouble();
+    final decimals = values[1].toNumber()?.toInt();
+    if (number == null || decimals == null) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+    final noCommas = args.length > 2 ? values[2].isTruthy : false;
+
+    String formatted;
+    if (decimals >= 0) {
+      final multiplier = math.pow(10, decimals);
+      final rounded = (number * multiplier).round() / multiplier;
+      formatted = rounded.toStringAsFixed(decimals);
+    } else {
+      final factor = math.pow(10, -decimals).toInt();
+      final rounded = (number / factor).round() * factor;
+      formatted = rounded.toString();
+    }
+
+    if (!noCommas) {
+      final isNegative = formatted.startsWith('-');
+      var s = isNegative ? formatted.substring(1) : formatted;
+      final parts = s.split('.');
+      var intPart = parts[0];
+      if (intPart.length > 3) {
+        final buffer = StringBuffer();
+        for (var i = 0; i < intPart.length; i++) {
+          if (i > 0 && (intPart.length - i) % 3 == 0) buffer.write(',');
+          buffer.write(intPart[i]);
+        }
+        intPart = buffer.toString();
+      }
+      s = parts.length > 1 ? '$intPart.${parts[1]}' : intPart;
+      formatted = isNegative ? '-$s' : s;
+    }
+
+    return FormulaValue.text(formatted);
+  }
+}
+
+/// T(value) - Returns the text if value is text, otherwise empty string.
+class TFunction extends FormulaFunction {
+  @override
+  String get name => 'T';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    if (value is TextValue) return value;
+    if (value.isError) return value;
+    return const FormulaValue.text('');
+  }
+}
+
+/// NUMBERVALUE(text, [decimal_separator], [group_separator]) - Converts text to number.
+class NumberValueFunction extends FormulaFunction {
+  @override
+  String get name => 'NUMBERVALUE';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 3;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    var text = values[0].toText().trim();
+    final decimalSep = args.length > 1 ? values[1].toText() : '.';
+    final groupSep = args.length > 2 ? values[2].toText() : ',';
+
+    // Remove group separators
+    if (groupSep.isNotEmpty) text = text.replaceAll(groupSep, '');
+    // Replace decimal separator with '.'
+    if (decimalSep != '.') text = text.replaceAll(decimalSep, '.');
+
+    // Handle percentage
+    if (text.endsWith('%')) {
+      text = text.substring(0, text.length - 1);
+      final n = num.tryParse(text);
+      if (n == null) return const FormulaValue.error(FormulaError.value);
+      return FormulaValue.number(n / 100);
+    }
+
+    final n = num.tryParse(text);
+    if (n == null) return const FormulaValue.error(FormulaError.value);
+    return FormulaValue.number(n);
+  }
+}
+
+/// UNICHAR(number) - Returns the Unicode character for a code point.
+class UnicharFunction extends FormulaFunction {
+  @override
+  String get name => 'UNICHAR';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final n = value.toNumber()?.toInt();
+    if (n == null) return const FormulaValue.error(FormulaError.value);
+    if (n < 1) return const FormulaValue.error(FormulaError.value);
+    return FormulaValue.text(String.fromCharCode(n));
+  }
+}
+
+/// UNICODE(text) - Returns the Unicode code point for the first character.
+class UnicodeFunction extends FormulaFunction {
+  @override
+  String get name => 'UNICODE';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final text = value.toText();
+    if (text.isEmpty) return const FormulaValue.error(FormulaError.value);
+    return FormulaValue.number(text.runes.first);
+  }
+}
+
+/// TEXTBEFORE(text, delimiter, [instance_num], [match_mode], [match_end], [if_not_found])
+class TextBeforeFunction extends FormulaFunction {
+  @override
+  String get name => 'TEXTBEFORE';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 6;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final text = values[0].toText();
+    final delimiter = values[1].toText();
+    final instanceNum =
+        args.length > 2 ? values[2].toNumber()?.toInt() ?? 1 : 1;
+    final matchMode =
+        args.length > 3 ? values[3].toNumber()?.toInt() ?? 0 : 0;
+    final ifNotFound = args.length > 5 ? values[5] : null;
+
+    if (instanceNum == 0) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    if (delimiter.isEmpty) {
+      return ifNotFound ?? const FormulaValue.error(FormulaError.na);
+    }
+
+    final caseSensitive = matchMode == 0;
+    final searchText = caseSensitive ? text : text.toLowerCase();
+    final searchDelim = caseSensitive ? delimiter : delimiter.toLowerCase();
+
+    // Find all occurrences
+    final positions = <int>[];
+    var start = 0;
+    while (true) {
+      final pos = searchText.indexOf(searchDelim, start);
+      if (pos == -1) break;
+      positions.add(pos);
+      start = pos + searchDelim.length;
+    }
+
+    if (positions.isEmpty) {
+      return ifNotFound ?? const FormulaValue.error(FormulaError.na);
+    }
+
+    int targetIndex;
+    if (instanceNum > 0) {
+      targetIndex = instanceNum - 1;
+    } else {
+      targetIndex = positions.length + instanceNum;
+    }
+
+    if (targetIndex < 0 || targetIndex >= positions.length) {
+      return ifNotFound ?? const FormulaValue.error(FormulaError.na);
+    }
+
+    return FormulaValue.text(text.substring(0, positions[targetIndex]));
+  }
+}
+
+/// TEXTAFTER(text, delimiter, [instance_num], [match_mode], [match_end], [if_not_found])
+class TextAfterFunction extends FormulaFunction {
+  @override
+  String get name => 'TEXTAFTER';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 6;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final text = values[0].toText();
+    final delimiter = values[1].toText();
+    final instanceNum =
+        args.length > 2 ? values[2].toNumber()?.toInt() ?? 1 : 1;
+    final matchMode =
+        args.length > 3 ? values[3].toNumber()?.toInt() ?? 0 : 0;
+    final ifNotFound = args.length > 5 ? values[5] : null;
+
+    if (instanceNum == 0) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    if (delimiter.isEmpty) {
+      return ifNotFound ?? const FormulaValue.error(FormulaError.na);
+    }
+
+    final caseSensitive = matchMode == 0;
+    final searchText = caseSensitive ? text : text.toLowerCase();
+    final searchDelim = caseSensitive ? delimiter : delimiter.toLowerCase();
+
+    // Find all occurrences
+    final positions = <int>[];
+    var start = 0;
+    while (true) {
+      final pos = searchText.indexOf(searchDelim, start);
+      if (pos == -1) break;
+      positions.add(pos);
+      start = pos + searchDelim.length;
+    }
+
+    if (positions.isEmpty) {
+      return ifNotFound ?? const FormulaValue.error(FormulaError.na);
+    }
+
+    int targetIndex;
+    if (instanceNum > 0) {
+      targetIndex = instanceNum - 1;
+    } else {
+      targetIndex = positions.length + instanceNum;
+    }
+
+    if (targetIndex < 0 || targetIndex >= positions.length) {
+      return ifNotFound ?? const FormulaValue.error(FormulaError.na);
+    }
+
+    return FormulaValue.text(
+        text.substring(positions[targetIndex] + delimiter.length));
+  }
+}
+
+/// TEXTSPLIT(text, col_delimiter, [row_delimiter], [ignore_empty], [match_mode], [pad_with])
+class TextSplitFunction extends FormulaFunction {
+  @override
+  String get name => 'TEXTSPLIT';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 6;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final text = values[0].toText();
+    final colDelimiter = values[1].toText();
+    final rowDelimiter =
+        args.length > 2 && values[2] is! EmptyValue ? values[2].toText() : null;
+    final ignoreEmpty = args.length > 3 ? values[3].isTruthy : false;
+    final matchMode =
+        args.length > 4 ? values[4].toNumber()?.toInt() ?? 0 : 0;
+    final padWith = args.length > 5
+        ? values[5]
+        : const FormulaValue.error(FormulaError.na);
+
+    final caseSensitive = matchMode == 0;
+
+    List<String> rows;
+    if (rowDelimiter != null && rowDelimiter.isNotEmpty) {
+      rows = _splitText(text, rowDelimiter, caseSensitive, ignoreEmpty);
+    } else {
+      rows = [text];
+    }
+
+    final result = <List<FormulaValue>>[];
+    var maxCols = 0;
+    for (final row in rows) {
+      final cols = _splitText(row, colDelimiter, caseSensitive, ignoreEmpty);
+      if (cols.length > maxCols) maxCols = cols.length;
+      result.add(cols.map<FormulaValue>(FormulaValue.text).toList());
+    }
+
+    // Pad rows to same number of columns
+    for (final row in result) {
+      while (row.length < maxCols) {
+        row.add(padWith);
+      }
+    }
+
+    if (result.length == 1 && result[0].length == 1) {
+      return result[0][0];
+    }
+
+    return RangeValue(result);
+  }
+
+  List<String> _splitText(
+      String text, String delimiter, bool caseSensitive, bool ignoreEmpty) {
+    if (delimiter.isEmpty) return [text];
+    final parts = <String>[];
+    final searchText = caseSensitive ? text : text.toLowerCase();
+    final searchDelim = caseSensitive ? delimiter : delimiter.toLowerCase();
+    var start = 0;
+    while (true) {
+      final pos = searchText.indexOf(searchDelim, start);
+      if (pos == -1) {
+        final part = text.substring(start);
+        if (!ignoreEmpty || part.isNotEmpty) parts.add(part);
+        break;
+      }
+      final part = text.substring(start, pos);
+      if (!ignoreEmpty || part.isNotEmpty) parts.add(part);
+      start = pos + delimiter.length;
+    }
+    return parts;
+  }
 }

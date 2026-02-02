@@ -1,3 +1,5 @@
+import 'package:a1/a1.dart';
+
 import '../ast/nodes.dart';
 import '../evaluation/context.dart';
 import '../evaluation/errors.dart';
@@ -16,6 +18,16 @@ void registerLookupFunctions(FunctionRegistry registry) {
     ChooseFunction(),
     XmatchFunction(),
     XlookupFunction(),
+    RowFunction(),
+    ColumnFunction(),
+    RowsFunction(),
+    ColumnsFunction(),
+    AddressFunction(),
+    IndirectFunction(),
+    OffsetFunction(),
+    TransposeFunction(),
+    HyperlinkFunction(),
+    AreasFunction(),
   ]);
 }
 
@@ -568,4 +580,373 @@ RegExp _wildcardToRegex(String pattern) {
   }
   buffer.write(r'$');
   return RegExp(buffer.toString(), caseSensitive: false);
+}
+
+// -- Wave 6: Lookup & Reference functions ------------------------------------
+
+/// ROW([reference]) - Returns the row number of a reference.
+class RowFunction extends FormulaFunction {
+  @override
+  String get name => 'ROW';
+  @override
+  int get minArgs => 0;
+  @override
+  int get maxArgs => 1;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    if (args.isEmpty) {
+      return FormulaValue.number(context.currentCell.row + 1);
+    }
+    final arg = args[0];
+    if (arg is CellRefNode) {
+      final cell = arg.reference.from.a1;
+      if (cell == null) return const FormulaValue.error(FormulaError.ref);
+      return FormulaValue.number(cell.row + 1);
+    }
+    if (arg is RangeRefNode) {
+      final from = arg.reference.from.a1;
+      if (from == null) return const FormulaValue.error(FormulaError.ref);
+      return FormulaValue.number(from.row + 1);
+    }
+    return const FormulaValue.error(FormulaError.value);
+  }
+}
+
+/// COLUMN([reference]) - Returns the column number of a reference.
+class ColumnFunction extends FormulaFunction {
+  @override
+  String get name => 'COLUMN';
+  @override
+  int get minArgs => 0;
+  @override
+  int get maxArgs => 1;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    if (args.isEmpty) {
+      return FormulaValue.number(context.currentCell.column + 1);
+    }
+    final arg = args[0];
+    if (arg is CellRefNode) {
+      final cell = arg.reference.from.a1;
+      if (cell == null) return const FormulaValue.error(FormulaError.ref);
+      return FormulaValue.number(cell.column + 1);
+    }
+    if (arg is RangeRefNode) {
+      final from = arg.reference.from.a1;
+      if (from == null) return const FormulaValue.error(FormulaError.ref);
+      return FormulaValue.number(from.column + 1);
+    }
+    return const FormulaValue.error(FormulaError.value);
+  }
+}
+
+/// ROWS(reference) - Returns the number of rows in a reference.
+class RowsFunction extends FormulaFunction {
+  @override
+  String get name => 'ROWS';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final arg = args[0];
+    if (arg is CellRefNode) return const FormulaValue.number(1);
+    if (arg is RangeRefNode) {
+      final from = arg.reference.from.a1;
+      final to = arg.reference.to.a1;
+      if (from == null || to == null) {
+        return const FormulaValue.error(FormulaError.ref);
+      }
+      return FormulaValue.number(to.row - from.row + 1);
+    }
+    final value = arg.evaluate(context);
+    if (value is RangeValue) return FormulaValue.number(value.rowCount);
+    return const FormulaValue.error(FormulaError.value);
+  }
+}
+
+/// COLUMNS(reference) - Returns the number of columns in a reference.
+class ColumnsFunction extends FormulaFunction {
+  @override
+  String get name => 'COLUMNS';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final arg = args[0];
+    if (arg is CellRefNode) return const FormulaValue.number(1);
+    if (arg is RangeRefNode) {
+      final from = arg.reference.from.a1;
+      final to = arg.reference.to.a1;
+      if (from == null || to == null) {
+        return const FormulaValue.error(FormulaError.ref);
+      }
+      return FormulaValue.number(to.column - from.column + 1);
+    }
+    final value = arg.evaluate(context);
+    if (value is RangeValue) return FormulaValue.number(value.columnCount);
+    return const FormulaValue.error(FormulaError.value);
+  }
+}
+
+/// ADDRESS(row_num, col_num, [abs_num], [a1], [sheet_text])
+///
+/// abs_num: 1=$A$1, 2=A$1, 3=$A1, 4=A1 (default 1).
+class AddressFunction extends FormulaFunction {
+  @override
+  String get name => 'ADDRESS';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 5;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+
+    final rowNum = values[0].toNumber()?.toInt();
+    final colNum = values[1].toNumber()?.toInt();
+    final absNum = args.length > 2 ? values[2].toNumber()?.toInt() ?? 1 : 1;
+    final a1Style = args.length > 3 ? values[3].toBool() : true;
+    final sheet = args.length > 4 ? values[4].toText() : null;
+
+    if (rowNum == null || rowNum < 1 || colNum == null || colNum < 1) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+    if (absNum < 1 || absNum > 4) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    String result;
+    if (a1Style) {
+      final colAbsolute = absNum == 1 || absNum == 3;
+      final rowAbsolute = absNum == 1 || absNum == 2;
+      final cell = A1.fromVector(colNum - 1, rowNum - 1);
+      final colStr = colAbsolute ? '\$${cell.letters}' : cell.letters;
+      final rowStr = rowAbsolute ? '\$${cell.digits}' : '${cell.digits}';
+      result = '$colStr$rowStr';
+    } else {
+      final rowAbsolute = absNum == 1 || absNum == 2;
+      final colAbsolute = absNum == 1 || absNum == 3;
+      final rowStr = rowAbsolute ? 'R$rowNum' : 'R[$rowNum]';
+      final colStr = colAbsolute ? 'C$colNum' : 'C[$colNum]';
+      result = '$rowStr$colStr';
+    }
+
+    if (sheet != null && sheet.isNotEmpty) {
+      result = '$sheet!$result';
+    }
+
+    return FormulaValue.text(result);
+  }
+}
+
+/// INDIRECT(ref_text, [a1]) - Returns the reference specified by a text string.
+class IndirectFunction extends FormulaFunction {
+  @override
+  String get name => 'INDIRECT';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    if (values[0].isError) return values[0];
+
+    final refText = values[0].toText();
+    final a1Style = args.length > 1 ? values[1].toBool() : true;
+    if (!a1Style) return const FormulaValue.error(FormulaError.ref);
+
+    final ref = A1Reference.tryParse(refText);
+    if (ref == null) return const FormulaValue.error(FormulaError.ref);
+
+    final from = ref.from.a1;
+    final to = ref.to.a1;
+
+    if (from == null) return const FormulaValue.error(FormulaError.ref);
+
+    // Single cell if from == to
+    if (to == null || (from.row == to.row && from.column == to.column)) {
+      return context.getCellValue(from);
+    }
+
+    return context.getRangeValues(ref.range);
+  }
+}
+
+/// OFFSET(reference, rows, cols, [height], [width])
+///
+/// Returns a reference offset from a starting reference.
+class OffsetFunction extends FormulaFunction {
+  @override
+  String get name => 'OFFSET';
+  @override
+  int get minArgs => 3;
+  @override
+  int get maxArgs => 5;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final ref = args[0];
+    final rowsVal = args[1].evaluate(context);
+    final colsVal = args[2].evaluate(context);
+
+    if (rowsVal.isError) return rowsVal;
+    if (colsVal.isError) return colsVal;
+
+    final rowOffset = rowsVal.toNumber()?.toInt();
+    final colOffset = colsVal.toNumber()?.toInt();
+    if (rowOffset == null || colOffset == null) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    int baseRow, baseCol;
+    int defaultHeight = 1, defaultWidth = 1;
+
+    if (ref is CellRefNode) {
+      final cell = ref.reference.from.a1;
+      if (cell == null) return const FormulaValue.error(FormulaError.ref);
+      baseRow = cell.row;
+      baseCol = cell.column;
+    } else if (ref is RangeRefNode) {
+      final from = ref.reference.from.a1;
+      final to = ref.reference.to.a1;
+      if (from == null || to == null) {
+        return const FormulaValue.error(FormulaError.ref);
+      }
+      baseRow = from.row;
+      baseCol = from.column;
+      defaultHeight = to.row - from.row + 1;
+      defaultWidth = to.column - from.column + 1;
+    } else {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final heightVal = args.length > 3 ? args[3].evaluate(context) : null;
+    final widthVal = args.length > 4 ? args[4].evaluate(context) : null;
+
+    final height = heightVal?.toNumber()?.toInt() ?? defaultHeight;
+    final width = widthVal?.toNumber()?.toInt() ?? defaultWidth;
+
+    if (height <= 0 || width <= 0) {
+      return const FormulaValue.error(FormulaError.ref);
+    }
+
+    final newRow = baseRow + rowOffset;
+    final newCol = baseCol + colOffset;
+
+    if (newRow < 0 || newCol < 0) {
+      return const FormulaValue.error(FormulaError.ref);
+    }
+
+    if (height == 1 && width == 1) {
+      return context.getCellValue(A1.fromVector(newCol, newRow));
+    }
+
+    final fromCell = A1.fromVector(newCol, newRow);
+    final toCell = A1.fromVector(newCol + width - 1, newRow + height - 1);
+    final range = A1Range.fromA1s(fromCell, toCell);
+    return context.getRangeValues(range);
+  }
+}
+
+/// TRANSPOSE(array) - Swaps rows and columns of an array.
+class TransposeFunction extends FormulaFunction {
+  @override
+  String get name => 'TRANSPOSE';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    if (value.isError) return value;
+
+    if (value is! RangeValue) {
+      return RangeValue([
+        [value]
+      ]);
+    }
+
+    final rows = value.values;
+    if (rows.isEmpty) return value;
+
+    final numRows = rows.length;
+    final numCols = rows[0].length;
+
+    final transposed = List.generate(
+      numCols,
+      (col) => List.generate(numRows, (row) => rows[row][col]),
+    );
+
+    return RangeValue(transposed);
+  }
+}
+
+/// HYPERLINK(link_location, [friendly_name])
+///
+/// Returns the friendly name or the URL as text.
+class HyperlinkFunction extends FormulaFunction {
+  @override
+  String get name => 'HYPERLINK';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    if (values[0].isError) return values[0];
+
+    if (args.length > 1) {
+      if (values[1].isError) return values[1];
+      return FormulaValue.text(values[1].toText());
+    }
+    return FormulaValue.text(values[0].toText());
+  }
+}
+
+/// AREAS(reference) - Returns the number of areas in a reference.
+///
+/// Multi-area references are not supported; always returns 1 for a valid ref.
+class AreasFunction extends FormulaFunction {
+  @override
+  String get name => 'AREAS';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final arg = args[0];
+    if (arg is CellRefNode || arg is RangeRefNode) {
+      return const FormulaValue.number(1);
+    }
+    return const FormulaValue.error(FormulaError.value);
+  }
 }

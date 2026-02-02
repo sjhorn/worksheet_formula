@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:a1/a1.dart';
 import 'package:test/test.dart';
 import 'package:worksheet_formula/src/ast/nodes.dart';
@@ -539,6 +541,425 @@ void main() {
         rangeNode,
       ]);
       expect(result, const NumberValue(1));
+    });
+  });
+
+  group('STDEV.S', () {
+    test('sample standard deviation', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(2)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(5)],
+        [NumberValue(5)],
+        [NumberValue(7)],
+        [NumberValue(9)],
+      ]);
+      final result = eval(registry.get('STDEV.S')!, [
+        RangeRefNode(A1Reference.parse('A1:A8')),
+      ]);
+      expect((result as NumberValue).value, closeTo(2.138, 0.01));
+    });
+
+    test('less than 2 values returns #DIV/0!', () {
+      final result = eval(registry.get('STDEV.S')!, [const NumberNode(5)]);
+      expect(result, const ErrorValue(FormulaError.divZero));
+    });
+  });
+
+  group('STDEV.P', () {
+    test('population standard deviation', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(2)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(5)],
+        [NumberValue(5)],
+        [NumberValue(7)],
+        [NumberValue(9)],
+      ]);
+      final result = eval(registry.get('STDEV.P')!, [
+        RangeRefNode(A1Reference.parse('A1:A8')),
+      ]);
+      expect((result as NumberValue).value, closeTo(math.sqrt(4.0), 0.01));
+    });
+  });
+
+  group('VAR.S', () {
+    test('sample variance', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(2)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(5)],
+        [NumberValue(5)],
+        [NumberValue(7)],
+        [NumberValue(9)],
+      ]);
+      final result = eval(registry.get('VAR.S')!, [
+        RangeRefNode(A1Reference.parse('A1:A8')),
+      ]);
+      expect((result as NumberValue).value, closeTo(4.571, 0.01));
+    });
+  });
+
+  group('VAR.P', () {
+    test('population variance', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(2)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(4)],
+        [NumberValue(5)],
+        [NumberValue(5)],
+        [NumberValue(7)],
+        [NumberValue(9)],
+      ]);
+      final result = eval(registry.get('VAR.P')!, [
+        RangeRefNode(A1Reference.parse('A1:A8')),
+      ]);
+      expect((result as NumberValue).value, closeTo(4.0, 0.01));
+    });
+  });
+
+  group('PERCENTILE.INC', () {
+    test('returns median at k=0.5', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+        [NumberValue(4)],
+      ]);
+      final result = eval(registry.get('PERCENTILE.INC')!, [
+        RangeRefNode(A1Reference.parse('A1:A4')),
+        const NumberNode(0.5),
+      ]);
+      expect(result, const NumberValue(2.5));
+    });
+
+    test('k=0 returns min', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+      ]);
+      final result = eval(registry.get('PERCENTILE.INC')!, [
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        const NumberNode(0),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('k=1 returns max', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+      ]);
+      final result = eval(registry.get('PERCENTILE.INC')!, [
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        const NumberNode(1),
+      ]);
+      expect(result, const NumberValue(3));
+    });
+
+    test('k out of range returns #NUM!', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+      ]);
+      final result = eval(registry.get('PERCENTILE.INC')!, [
+        RangeRefNode(A1Reference.parse('A1:A1')),
+        const NumberNode(1.5),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('PERCENTILE.EXC', () {
+    test('returns value at k', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+        [NumberValue(4)],
+      ]);
+      final result = eval(registry.get('PERCENTILE.EXC')!, [
+        RangeRefNode(A1Reference.parse('A1:A4')),
+        const NumberNode(0.5),
+      ]);
+      expect(result, const NumberValue(2.5));
+    });
+
+    test('k=0 returns #NUM!', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+      ]);
+      final result = eval(registry.get('PERCENTILE.EXC')!, [
+        RangeRefNode(A1Reference.parse('A1:A1')),
+        const NumberNode(0),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('PERCENTRANK.INC', () {
+    test('returns percent rank', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+        [NumberValue(4)],
+      ]);
+      final result = eval(registry.get('PERCENTRANK.INC')!, [
+        RangeRefNode(A1Reference.parse('A1:A4')),
+        const NumberNode(3),
+      ]);
+      expect((result as NumberValue).value, closeTo(0.666, 0.001));
+    });
+
+    test('value outside range returns #N/A', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+      ]);
+      final result = eval(registry.get('PERCENTRANK.INC')!, [
+        RangeRefNode(A1Reference.parse('A1:A2')),
+        const NumberNode(5),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+  });
+
+  group('PERCENTRANK.EXC', () {
+    test('returns exclusive percent rank', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+        [NumberValue(4)],
+      ]);
+      final result = eval(registry.get('PERCENTRANK.EXC')!, [
+        RangeRefNode(A1Reference.parse('A1:A4')),
+        const NumberNode(3),
+      ]);
+      // rank = (2+1)/(4+1) = 0.6
+      expect((result as NumberValue).value, closeTo(0.6, 0.001));
+    });
+  });
+
+  group('RANK.AVG', () {
+    test('no ties same as RANK.EQ', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+      ]);
+      final result = eval(registry.get('RANK.AVG')!, [
+        const NumberNode(2),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+
+    test('ties are averaged', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(3)],
+        [NumberValue(3)],
+        [NumberValue(1)],
+      ]);
+      final result = eval(registry.get('RANK.AVG')!, [
+        const NumberNode(3),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+      ]);
+      // descending: rank 1 and 2 for the two 3s -> avg = 1.5
+      expect(result, const NumberValue(1.5));
+    });
+  });
+
+  group('FREQUENCY', () {
+    test('distributes into bins', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+        [NumberValue(4)],
+        [NumberValue(5)],
+      ]);
+      // Use same override for both args
+      final result = eval(registry.get('FREQUENCY')!, [
+        RangeRefNode(A1Reference.parse('A1:A5')),
+        RangeRefNode(A1Reference.parse('A1:A5')),
+      ]);
+      expect(result, isA<RangeValue>());
+      final range = result as RangeValue;
+      // bins = [1,2,3,4,5], so 6 entries: <=1, <=2, <=3, <=4, <=5, >5
+      expect(range.rowCount, 6);
+    });
+  });
+
+  group('AVEDEV', () {
+    test('average absolute deviation', () {
+      final result = eval(registry.get('AVEDEV')!, [
+        const NumberNode(2),
+        const NumberNode(4),
+        const NumberNode(8),
+        const NumberNode(16),
+      ]);
+      // mean = 7.5, deviations: 5.5, 3.5, 0.5, 8.5, avg = 4.5
+      expect((result as NumberValue).value, closeTo(4.5, 0.001));
+    });
+  });
+
+  group('AVERAGEA', () {
+    test('includes booleans as 1/0', () {
+      final result = eval(registry.get('AVERAGEA')!, [
+        const NumberNode(1),
+        const BooleanNode(true),
+        const BooleanNode(false),
+      ]);
+      // (1 + 1 + 0) / 3 = 0.666...
+      expect((result as NumberValue).value, closeTo(0.666, 0.01));
+    });
+  });
+
+  group('MAXA', () {
+    test('includes booleans', () {
+      final result = eval(registry.get('MAXA')!, [
+        const NumberNode(-5),
+        const BooleanNode(true),
+        const BooleanNode(false),
+      ]);
+      // max of -5, 1, 0 = 1
+      expect(result, const NumberValue(1));
+    });
+  });
+
+  group('MINA', () {
+    test('includes booleans', () {
+      final result = eval(registry.get('MINA')!, [
+        const NumberNode(5),
+        const BooleanNode(true),
+        const BooleanNode(false),
+      ]);
+      // min of 5, 1, 0 = 0
+      expect(result, const NumberValue(0));
+    });
+  });
+
+  group('TRIMMEAN', () {
+    test('trims outliers and averages', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+        [NumberValue(4)],
+        [NumberValue(100)],
+      ]);
+      // 20% trim: trim 1 from each end (floor(5 * 0.2 / 2) = 0)
+      // Actually floor(5*0.4/2) = floor(1) = 1 from each end
+      final result = eval(registry.get('TRIMMEAN')!, [
+        RangeRefNode(A1Reference.parse('A1:A5')),
+        const NumberNode(0.4),
+      ]);
+      // trimmed: [2, 3, 4], mean = 3
+      expect(result, const NumberValue(3));
+    });
+
+    test('percent >= 1 returns #NUM!', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+      ]);
+      final result = eval(registry.get('TRIMMEAN')!, [
+        RangeRefNode(A1Reference.parse('A1:A1')),
+        const NumberNode(1),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('GEOMEAN', () {
+    test('geometric mean', () {
+      final result = eval(registry.get('GEOMEAN')!, [
+        const NumberNode(4),
+        const NumberNode(9),
+      ]);
+      expect((result as NumberValue).value, closeTo(6, 0.001));
+    });
+
+    test('negative value returns #NUM!', () {
+      final result = eval(registry.get('GEOMEAN')!, [
+        const NumberNode(4),
+        const NumberNode(-1),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('HARMEAN', () {
+    test('harmonic mean', () {
+      final result = eval(registry.get('HARMEAN')!, [
+        const NumberNode(1),
+        const NumberNode(2),
+        const NumberNode(4),
+      ]);
+      // 3 / (1 + 0.5 + 0.25) = 3 / 1.75 = 1.714...
+      expect((result as NumberValue).value, closeTo(1.714, 0.01));
+    });
+
+    test('zero returns #NUM!', () {
+      final result = eval(registry.get('HARMEAN')!, [
+        const NumberNode(0),
+        const NumberNode(1),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('MAXIFS', () {
+    test('returns max of matching values', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final result = eval(registry.get('MAXIFS')!, [
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        const TextNode('>5'),
+      ]);
+      expect(result, const NumberValue(30));
+    });
+
+    test('no matches returns 0', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+      ]);
+      final result = eval(registry.get('MAXIFS')!, [
+        RangeRefNode(A1Reference.parse('A1:A2')),
+        RangeRefNode(A1Reference.parse('A1:A2')),
+        const TextNode('>100'),
+      ]);
+      expect(result, const NumberValue(0));
+    });
+  });
+
+  group('MINIFS', () {
+    test('returns min of matching values', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final result = eval(registry.get('MINIFS')!, [
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        const TextNode('>5'),
+      ]);
+      expect(result, const NumberValue(10));
     });
   });
 }

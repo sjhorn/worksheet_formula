@@ -499,4 +499,325 @@ void main() {
       expect(result, expected);
     });
   });
+
+  group('TIMEVALUE', () {
+    test('parses HH:MM:SS', () {
+      final result =
+          eval(registry.get('TIMEVALUE')!, [const TextNode('12:00:00')]);
+      expect(result, const NumberValue(0.5));
+    });
+
+    test('parses HH:MM', () {
+      final result =
+          eval(registry.get('TIMEVALUE')!, [const TextNode('6:00')]);
+      expect(result, const NumberValue(0.25));
+    });
+
+    test('invalid text returns #VALUE!', () {
+      final result =
+          eval(registry.get('TIMEVALUE')!, [const TextNode('not a time')]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('WEEKNUM', () {
+    test('type 1 Sunday start', () {
+      // Jan 1, 2024 is a Monday → week 1 (type 1: Sun start)
+      final serial = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final result = eval(registry.get('WEEKNUM')!, [
+        NumberNode((serial as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('type 2 Monday start', () {
+      // Jan 7, 2024 is a Sunday → still week 1 for Monday start
+      final serial = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(7),
+      ]);
+      final result = eval(registry.get('WEEKNUM')!, [
+        NumberNode((serial as NumberValue).value),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('Jan 8 Monday start gives week 2', () {
+      final serial = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(8),
+      ]);
+      final result = eval(registry.get('WEEKNUM')!, [
+        NumberNode((serial as NumberValue).value),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+  });
+
+  group('ISOWEEKNUM', () {
+    test('Jan 1 2024 is ISO week 1', () {
+      final serial = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final result = eval(registry.get('ISOWEEKNUM')!, [
+        NumberNode((serial as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('Dec 31 2024 is ISO week 1 of 2025', () {
+      // Dec 31, 2024 is a Tuesday. The Thursday of that week is Jan 2, 2025.
+      final serial = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(12),
+        const NumberNode(31),
+      ]);
+      final result = eval(registry.get('ISOWEEKNUM')!, [
+        NumberNode((serial as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+  });
+
+  group('NETWORKDAYS', () {
+    test('counts working days', () {
+      // Jan 1-5, 2024 (Mon-Fri) = 5 working days
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(5),
+      ]);
+      final result = eval(registry.get('NETWORKDAYS')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(5));
+    });
+
+    test('skips weekends', () {
+      // Jan 1-7, 2024 (Mon-Sun) = 5 working days
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(7),
+      ]);
+      final result = eval(registry.get('NETWORKDAYS')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(5));
+    });
+  });
+
+  group('NETWORKDAYS.INTL', () {
+    test('custom weekend code 11 (Sunday only)', () {
+      // Jan 1-7, 2024 (Mon-Sun) with Sunday-only weekend = 6 working days
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(7),
+      ]);
+      final result = eval(registry.get('NETWORKDAYS.INTL')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const NumberNode(11),
+      ]);
+      expect(result, const NumberValue(6));
+    });
+  });
+
+  group('WORKDAY', () {
+    test('adds working days', () {
+      // Start Jan 1, 2024 (Monday), add 5 working days = Jan 8 (Monday)
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final result = eval(registry.get('WORKDAY')!, [
+        NumberNode((start as NumberValue).value),
+        const NumberNode(5),
+      ]);
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(8),
+      ]);
+      expect(result, expected);
+    });
+
+    test('negative days goes backward', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(8),
+      ]);
+      final result = eval(registry.get('WORKDAY')!, [
+        NumberNode((start as NumberValue).value),
+        const NumberNode(-5),
+      ]);
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      expect(result, expected);
+    });
+  });
+
+  group('WORKDAY.INTL', () {
+    test('custom weekend code', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      // With Sunday-only weekend (code 11), 6 days lands on Jan 8
+      final result = eval(registry.get('WORKDAY.INTL')!, [
+        NumberNode((start as NumberValue).value),
+        const NumberNode(6),
+        const NumberNode(11),
+      ]);
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(8),
+      ]);
+      expect(result, expected);
+    });
+  });
+
+  group('DAYS360', () {
+    test('US method (default)', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(7),
+        const NumberNode(1),
+      ]);
+      final result = eval(registry.get('DAYS360')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(180));
+    });
+
+    test('European method', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(31),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(3),
+        const NumberNode(31),
+      ]);
+      final result = eval(registry.get('DAYS360')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const BooleanNode(true),
+      ]);
+      expect(result, const NumberValue(60));
+    });
+  });
+
+  group('YEARFRAC', () {
+    test('basis 0 (US 30/360)', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(7),
+        const NumberNode(1),
+      ]);
+      final result = eval(registry.get('YEARFRAC')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const NumberNode(0),
+      ]);
+      expect(result, const NumberValue(0.5));
+    });
+
+    test('basis 2 (Actual/360)', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(31),
+      ]);
+      final result = eval(registry.get('YEARFRAC')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const NumberNode(2),
+      ]);
+      expect(
+          (result as NumberValue).value, closeTo(30 / 360, 0.0001));
+    });
+
+    test('basis 3 (Actual/365)', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(31),
+      ]);
+      final result = eval(registry.get('YEARFRAC')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const NumberNode(3),
+      ]);
+      expect(
+          (result as NumberValue).value, closeTo(30 / 365, 0.0001));
+    });
+
+    test('invalid basis returns #NUM!', () {
+      final result = eval(registry.get('YEARFRAC')!, [
+        const NumberNode(45292),
+        const NumberNode(45322),
+        const NumberNode(5),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
 }

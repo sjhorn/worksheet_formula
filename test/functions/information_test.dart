@@ -173,4 +173,183 @@ void main() {
       expect(result, const NumberValue(1));
     });
   });
+
+  group('ISERR', () {
+    test('returns true for non-N/A error', () {
+      final result = eval(
+          registry.get('ISERR')!, [const ErrorNode(FormulaError.value)]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for #N/A', () {
+      final result =
+          eval(registry.get('ISERR')!, [const ErrorNode(FormulaError.na)]);
+      expect(result, const BooleanValue(false));
+    });
+
+    test('returns false for number', () {
+      final result = eval(registry.get('ISERR')!, [const NumberNode(5)]);
+      expect(result, const BooleanValue(false));
+    });
+  });
+
+  group('ISNONTEXT', () {
+    test('returns true for number', () {
+      final result =
+          eval(registry.get('ISNONTEXT')!, [const NumberNode(5)]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for text', () {
+      final result =
+          eval(registry.get('ISNONTEXT')!, [const TextNode('hello')]);
+      expect(result, const BooleanValue(false));
+    });
+
+    test('returns true for boolean', () {
+      final result =
+          eval(registry.get('ISNONTEXT')!, [const BooleanNode(true)]);
+      expect(result, const BooleanValue(true));
+    });
+  });
+
+  group('ISEVEN', () {
+    test('returns true for even number', () {
+      final result = eval(registry.get('ISEVEN')!, [const NumberNode(4)]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for odd number', () {
+      final result = eval(registry.get('ISEVEN')!, [const NumberNode(3)]);
+      expect(result, const BooleanValue(false));
+    });
+
+    test('zero is even', () {
+      final result = eval(registry.get('ISEVEN')!, [const NumberNode(0)]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('truncates decimal', () {
+      final result = eval(registry.get('ISEVEN')!, [const NumberNode(4.7)]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('non-numeric returns #VALUE!', () {
+      final result =
+          eval(registry.get('ISEVEN')!, [const TextNode('abc')]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('ISODD', () {
+    test('returns true for odd number', () {
+      final result = eval(registry.get('ISODD')!, [const NumberNode(3)]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for even number', () {
+      final result = eval(registry.get('ISODD')!, [const NumberNode(4)]);
+      expect(result, const BooleanValue(false));
+    });
+
+    test('non-numeric returns #VALUE!', () {
+      final result =
+          eval(registry.get('ISODD')!, [const TextNode('abc')]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('ISREF', () {
+    test('returns true for cell reference', () {
+      final result = eval(registry.get('ISREF')!, [
+        CellRefNode(A1Reference.parse('A1')),
+      ]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns true for range reference', () {
+      final result = eval(registry.get('ISREF')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for number', () {
+      final result = eval(registry.get('ISREF')!, [const NumberNode(5)]);
+      expect(result, const BooleanValue(false));
+    });
+  });
+
+  group('N', () {
+    test('number returns itself', () {
+      final result = eval(registry.get('N')!, [const NumberNode(42)]);
+      expect(result, const NumberValue(42));
+    });
+
+    test('true returns 1', () {
+      final result = eval(registry.get('N')!, [const BooleanNode(true)]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('false returns 0', () {
+      final result = eval(registry.get('N')!, [const BooleanNode(false)]);
+      expect(result, const NumberValue(0));
+    });
+
+    test('text returns 0', () {
+      final result = eval(registry.get('N')!, [const TextNode('hello')]);
+      expect(result, const NumberValue(0));
+    });
+
+    test('error returns error', () {
+      final result =
+          eval(registry.get('N')!, [const ErrorNode(FormulaError.ref)]);
+      expect(result, const ErrorValue(FormulaError.ref));
+    });
+  });
+
+  group('NA', () {
+    test('returns #N/A', () {
+      final result = eval(registry.get('NA')!, []);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+  });
+
+  group('ERROR.TYPE', () {
+    test('#NULL! returns 1', () {
+      final result = eval(
+          registry.get('ERROR.TYPE')!, [const ErrorNode(FormulaError.null_)]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('#DIV/0! returns 2', () {
+      final result = eval(registry.get('ERROR.TYPE')!,
+          [const ErrorNode(FormulaError.divZero)]);
+      expect(result, const NumberValue(2));
+    });
+
+    test('#VALUE! returns 3', () {
+      final result = eval(registry.get('ERROR.TYPE')!,
+          [const ErrorNode(FormulaError.value)]);
+      expect(result, const NumberValue(3));
+    });
+
+    test('#REF! returns 4', () {
+      final result = eval(
+          registry.get('ERROR.TYPE')!, [const ErrorNode(FormulaError.ref)]);
+      expect(result, const NumberValue(4));
+    });
+
+    test('#N/A returns 7', () {
+      final result = eval(
+          registry.get('ERROR.TYPE')!, [const ErrorNode(FormulaError.na)]);
+      expect(result, const NumberValue(7));
+    });
+
+    test('non-error returns #N/A', () {
+      final result =
+          eval(registry.get('ERROR.TYPE')!, [const NumberNode(5)]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+  });
 }
