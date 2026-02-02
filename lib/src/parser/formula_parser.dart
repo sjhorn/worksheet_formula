@@ -150,7 +150,9 @@ class FormulaParser {
 
     // Function call: SUM(...), IF(...)
     final functionName =
-        (letter() & (letter() | digit() | char('_')).star()).flatten().trim();
+        (letter() & (letter() | digit() | char('_') | char('.')).star())
+            .flatten()
+            .trim();
 
     final argumentList = expression
         .plusSeparated(char(',').trim() | char(';').trim())

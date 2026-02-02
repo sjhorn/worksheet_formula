@@ -278,4 +278,267 @@ void main() {
       expect(result, const ErrorValue(FormulaError.divZero));
     });
   });
+
+  group('SUMIFS', () {
+    test('sums with single criteria pair', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A3'));
+      final result = eval(registry.get('SUMIFS')!, [
+        rangeNode,
+        rangeNode,
+        const TextNode('>10'),
+      ]);
+      expect(result, const NumberValue(50));
+    });
+
+    test('returns 0 when no matches', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A2'));
+      final result = eval(registry.get('SUMIFS')!, [
+        rangeNode,
+        rangeNode,
+        const TextNode('>100'),
+      ]);
+      expect(result, const NumberValue(0));
+    });
+  });
+
+  group('COUNTIFS', () {
+    test('counts with single criteria pair', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(5)],
+        [NumberValue(10)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A3'));
+      final result = eval(registry.get('COUNTIFS')!, [
+        rangeNode,
+        const TextNode('>2'),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+  });
+
+  group('AVERAGEIFS', () {
+    test('averages with criteria', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A3'));
+      final result = eval(registry.get('AVERAGEIFS')!, [
+        rangeNode,
+        rangeNode,
+        const TextNode('>10'),
+      ]);
+      expect(result, const NumberValue(25));
+    });
+
+    test('returns #DIV/0! when no matches', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A1'));
+      final result = eval(registry.get('AVERAGEIFS')!, [
+        rangeNode,
+        rangeNode,
+        const TextNode('>100'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.divZero));
+    });
+  });
+
+  group('MEDIAN', () {
+    test('returns middle value for odd count', () {
+      final result = eval(registry.get('MEDIAN')!, [
+        const NumberNode(3),
+        const NumberNode(1),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+
+    test('returns average of middle two for even count', () {
+      final result = eval(registry.get('MEDIAN')!, [
+        const NumberNode(1),
+        const NumberNode(2),
+        const NumberNode(3),
+        const NumberNode(4),
+      ]);
+      expect(result, const NumberValue(2.5));
+    });
+
+    test('single value returns itself', () {
+      final result = eval(registry.get('MEDIAN')!, [const NumberNode(5)]);
+      expect(result, const NumberValue(5));
+    });
+
+    test('no numbers returns #NUM!', () {
+      final result =
+          eval(registry.get('MEDIAN')!, [const TextNode('abc')]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('MODE.SNGL', () {
+    test('returns most frequent value', () {
+      final result = eval(registry.get('MODE.SNGL')!, [
+        const NumberNode(1),
+        const NumberNode(2),
+        const NumberNode(2),
+        const NumberNode(3),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+
+    test('returns #N/A when all unique', () {
+      final result = eval(registry.get('MODE.SNGL')!, [
+        const NumberNode(1),
+        const NumberNode(2),
+        const NumberNode(3),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+
+    test('MODE alias works', () {
+      final result = eval(registry.get('MODE')!, [
+        const NumberNode(5),
+        const NumberNode(5),
+        const NumberNode(3),
+      ]);
+      expect(result, const NumberValue(5));
+    });
+  });
+
+  group('LARGE', () {
+    test('returns k-th largest', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(3)],
+        [NumberValue(1)],
+        [NumberValue(4)],
+        [NumberValue(1)],
+        [NumberValue(5)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A5'));
+      final result = eval(registry.get('LARGE')!, [
+        rangeNode,
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(4));
+    });
+
+    test('k out of range returns #NUM!', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A2'));
+      final result = eval(registry.get('LARGE')!, [
+        rangeNode,
+        const NumberNode(5),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('SMALL', () {
+    test('returns k-th smallest', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(3)],
+        [NumberValue(1)],
+        [NumberValue(4)],
+        [NumberValue(1)],
+        [NumberValue(5)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A5'));
+      final result = eval(registry.get('SMALL')!, [
+        rangeNode,
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('k out of range returns #NUM!', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A1'));
+      final result = eval(registry.get('SMALL')!, [
+        rangeNode,
+        const NumberNode(5),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('RANK.EQ', () {
+    test('descending rank (default)', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(3)],
+        [NumberValue(1)],
+        [NumberValue(4)],
+        [NumberValue(1)],
+        [NumberValue(5)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A5'));
+      // 5 is the largest, rank 1
+      final result = eval(registry.get('RANK.EQ')!, [
+        const NumberNode(5),
+        rangeNode,
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('ascending rank', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(3)],
+        [NumberValue(1)],
+        [NumberValue(4)],
+        [NumberValue(5)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A4'));
+      // 1 is the smallest, rank 1
+      final result = eval(registry.get('RANK.EQ')!, [
+        const NumberNode(1),
+        rangeNode,
+        const NumberNode(1),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('not found returns #N/A', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A2'));
+      final result = eval(registry.get('RANK.EQ')!, [
+        const NumberNode(99),
+        rangeNode,
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+
+    test('RANK alias works', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+      ]);
+      final rangeNode = RangeRefNode(A1Reference.parse('A1:A3'));
+      final result = eval(registry.get('RANK')!, [
+        const NumberNode(3),
+        rangeNode,
+      ]);
+      expect(result, const NumberValue(1));
+    });
+  });
 }

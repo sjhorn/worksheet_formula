@@ -256,4 +256,209 @@ void main() {
       expect(result, const ErrorValue(FormulaError.value));
     });
   });
+
+  group('SUMPRODUCT', () {
+    test('multiplies and sums single array', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1), NumberValue(2)],
+        [NumberValue(3), NumberValue(4)],
+      ]);
+      final result = eval(registry.get('SUMPRODUCT')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      // Just sums: 1+2+3+4 = 10
+      expect(result, const NumberValue(10));
+    });
+
+    test('non-numeric treated as 0', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(5), TextValue('x')],
+      ]);
+      final result = eval(registry.get('SUMPRODUCT')!, [
+        RangeRefNode(A1Reference.parse('A1:B1')),
+      ]);
+      // 5 + 0 = 5
+      expect(result, const NumberValue(5));
+    });
+  });
+
+  group('ROUNDUP', () {
+    test('rounds up positive number', () {
+      final result = eval(registry.get('ROUNDUP')!, [
+        const NumberNode(3.14159),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(3.15));
+    });
+
+    test('rounds up negative number (away from zero)', () {
+      final result = eval(registry.get('ROUNDUP')!, [
+        const NumberNode(-3.14159),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(-3.15));
+    });
+
+    test('non-numeric returns #VALUE!', () {
+      final result = eval(registry.get('ROUNDUP')!, [
+        const TextNode('abc'),
+        const NumberNode(0),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('ROUNDDOWN', () {
+    test('rounds down positive number', () {
+      final result = eval(registry.get('ROUNDDOWN')!, [
+        const NumberNode(3.999),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(3.99));
+    });
+
+    test('rounds down negative number (toward zero)', () {
+      final result = eval(registry.get('ROUNDDOWN')!, [
+        const NumberNode(-3.999),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(-3.99));
+    });
+  });
+
+  group('CEILING', () {
+    test('rounds up to nearest multiple', () {
+      final result = eval(registry.get('CEILING')!, [
+        const NumberNode(2.3),
+        const NumberNode(1),
+      ]);
+      expect(result, const NumberValue(3));
+    });
+
+    test('rounds up to nearest 0.5', () {
+      final result = eval(registry.get('CEILING')!, [
+        const NumberNode(2.3),
+        const NumberNode(0.5),
+      ]);
+      expect(result, const NumberValue(2.5));
+    });
+
+    test('zero significance returns 0', () {
+      final result = eval(registry.get('CEILING')!, [
+        const NumberNode(5),
+        const NumberNode(0),
+      ]);
+      expect(result, const NumberValue(0));
+    });
+
+    test('positive number with negative significance returns #NUM!', () {
+      final result = eval(registry.get('CEILING')!, [
+        const NumberNode(5),
+        const NumberNode(-1),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('FLOOR', () {
+    test('rounds down to nearest multiple', () {
+      final result = eval(registry.get('FLOOR')!, [
+        const NumberNode(2.7),
+        const NumberNode(1),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+
+    test('rounds down to nearest 0.5', () {
+      final result = eval(registry.get('FLOOR')!, [
+        const NumberNode(2.7),
+        const NumberNode(0.5),
+      ]);
+      expect(result, const NumberValue(2.5));
+    });
+
+    test('zero significance returns #DIV/0!', () {
+      final result = eval(registry.get('FLOOR')!, [
+        const NumberNode(5),
+        const NumberNode(0),
+      ]);
+      expect(result, const ErrorValue(FormulaError.divZero));
+    });
+  });
+
+  group('SIGN', () {
+    test('positive returns 1', () {
+      final result = eval(registry.get('SIGN')!, [const NumberNode(5)]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('negative returns -1', () {
+      final result = eval(registry.get('SIGN')!, [const NumberNode(-3)]);
+      expect(result, const NumberValue(-1));
+    });
+
+    test('zero returns 0', () {
+      final result = eval(registry.get('SIGN')!, [const NumberNode(0)]);
+      expect(result, const NumberValue(0));
+    });
+
+    test('non-numeric returns #VALUE!', () {
+      final result = eval(registry.get('SIGN')!, [const TextNode('abc')]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('PRODUCT', () {
+    test('multiplies numbers', () {
+      final result = eval(registry.get('PRODUCT')!, [
+        const NumberNode(2),
+        const NumberNode(3),
+        const NumberNode(4),
+      ]);
+      expect(result, const NumberValue(24));
+    });
+
+    test('multiplies range values', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(2), NumberValue(3)],
+        [NumberValue(5), TextValue('skip')],
+      ]);
+      final result = eval(registry.get('PRODUCT')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expect(result, const NumberValue(30));
+    });
+  });
+
+  group('RAND', () {
+    test('returns number between 0 and 1', () {
+      final result = eval(registry.get('RAND')!, []);
+      expect(result, isA<NumberValue>());
+      final value = (result as NumberValue).value;
+      expect(value, greaterThanOrEqualTo(0));
+      expect(value, lessThan(1));
+    });
+  });
+
+  group('RANDBETWEEN', () {
+    test('returns integer in range', () {
+      final result = eval(registry.get('RANDBETWEEN')!, [
+        const NumberNode(1),
+        const NumberNode(10),
+      ]);
+      expect(result, isA<NumberValue>());
+      final value = (result as NumberValue).value;
+      expect(value, greaterThanOrEqualTo(1));
+      expect(value, lessThanOrEqualTo(10));
+      expect(value, equals(value.toInt()));
+    });
+
+    test('bottom > top returns #NUM!', () {
+      final result = eval(registry.get('RANDBETWEEN')!, [
+        const NumberNode(10),
+        const NumberNode(1),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
 }

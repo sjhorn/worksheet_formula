@@ -1,5 +1,6 @@
 import 'date.dart';
 import 'function.dart';
+import 'information.dart';
 import 'logical.dart';
 import 'lookup.dart';
 import 'math.dart';
@@ -19,6 +20,7 @@ class FunctionRegistry {
       registerStatisticalFunctions(this);
       registerLookupFunctions(this);
       registerDateFunctions(this);
+      registerInformationFunctions(this);
     }
   }
 

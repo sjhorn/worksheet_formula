@@ -5,7 +5,7 @@ A standalone formula engine for spreadsheet-like calculations in Dart.
 ## Features
 
 - Excel/Google Sheets compatible formula parsing
-- 43 built-in functions (math, logical, text, statistical, lookup, date)
+- 95 built-in functions (math, logical, text, statistical, lookup, date, information)
 - Type-safe formula values with Excel-compatible error handling
 - Cell dependency tracking for efficient recalculation
 - Custom function registration
@@ -76,23 +76,26 @@ final result = engine.evaluateString('=SUM(A1:A2)', context);
 
 ## Built-in Functions
 
-### Math (10)
-`SUM`, `AVERAGE`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `SQRT`, `POWER`
+### Math (19)
+`SUM`, `AVERAGE`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `SQRT`, `POWER`, `SUMPRODUCT`, `ROUNDUP`, `ROUNDDOWN`, `CEILING`, `FLOOR`, `SIGN`, `PRODUCT`, `RAND`, `RANDBETWEEN`
 
-### Logical (8)
-`IF`, `AND`, `OR`, `NOT`, `IFERROR`, `IFNA`, `TRUE`, `FALSE`
+### Logical (11)
+`IF`, `AND`, `OR`, `NOT`, `IFERROR`, `IFNA`, `TRUE`, `FALSE`, `IFS`, `SWITCH`, `XOR`
 
-### Text (10)
-`CONCAT`, `CONCATENATE`, `LEFT`, `RIGHT`, `MID`, `LEN`, `LOWER`, `UPPER`, `TRIM`, `TEXT`
+### Text (18)
+`CONCAT`, `CONCATENATE`, `LEFT`, `RIGHT`, `MID`, `LEN`, `LOWER`, `UPPER`, `TRIM`, `TEXT`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `VALUE`, `TEXTJOIN`, `PROPER`, `EXACT`
 
-### Statistical (6)
-`COUNT`, `COUNTA`, `COUNTBLANK`, `COUNTIF`, `SUMIF`, `AVERAGEIF`
+### Statistical (16)
+`COUNT`, `COUNTA`, `COUNTBLANK`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `SUMIFS`, `COUNTIFS`, `AVERAGEIFS`, `MEDIAN`, `MODE.SNGL`, `MODE`, `LARGE`, `SMALL`, `RANK.EQ`, `RANK`
 
-### Lookup (3)
-`VLOOKUP`, `INDEX`, `MATCH`
+### Lookup (8)
+`VLOOKUP`, `INDEX`, `MATCH`, `HLOOKUP`, `LOOKUP`, `CHOOSE`, `XMATCH`, `XLOOKUP`
 
-### Date (6)
-`DATE`, `TODAY`, `NOW`, `YEAR`, `MONTH`, `DAY`
+### Date/Time (16)
+`DATE`, `TODAY`, `NOW`, `YEAR`, `MONTH`, `DAY`, `DAYS`, `DATEDIF`, `DATEVALUE`, `WEEKDAY`, `HOUR`, `MINUTE`, `SECOND`, `TIME`, `EDATE`, `EOMONTH`
+
+### Information (7)
+`ISBLANK`, `ISERROR`, `ISNUMBER`, `ISTEXT`, `ISLOGICAL`, `ISNA`, `TYPE`
 
 ## Custom Functions
 

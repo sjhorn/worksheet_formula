@@ -16,6 +16,9 @@ void registerLogicalFunctions(FunctionRegistry registry) {
     IfNaFunction(),
     TrueFunction(),
     FalseFunction(),
+    IfsFunction(),
+    SwitchFunction(),
+    XorFunction(),
   ]);
 }
 
@@ -168,4 +171,94 @@ class FalseFunction extends FormulaFunction {
   @override
   FormulaValue call(List<FormulaNode> args, EvaluationContext context) =>
       const FormulaValue.boolean(false);
+}
+
+/// IFS(condition1, value1, [condition2, value2], ...) - Chained IF.
+class IfsFunction extends FormulaFunction {
+  @override
+  String get name => 'IFS';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => -1;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    if (args.length.isOdd) {
+      return const FormulaValue.error(FormulaError.na);
+    }
+    for (var i = 0; i < args.length; i += 2) {
+      final condition = args[i].evaluate(context);
+      if (condition.isError) return condition;
+      if (condition.isTruthy) {
+        return args[i + 1].evaluate(context);
+      }
+    }
+    return const FormulaValue.error(FormulaError.na);
+  }
+}
+
+/// SWITCH(expression, val1, result1, ..., [default]) - Match against cases.
+class SwitchFunction extends FormulaFunction {
+  @override
+  String get name => 'SWITCH';
+  @override
+  int get minArgs => 3;
+  @override
+  int get maxArgs => -1;
+  @override
+  bool get isLazy => true;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final expression = args[0].evaluate(context);
+    if (expression.isError) return expression;
+
+    // Remaining args after expression: pairs of (value, result), optional default
+    final remaining = args.length - 1;
+    final hasDefault = remaining.isOdd;
+    final pairCount = hasDefault ? (remaining - 1) ~/ 2 : remaining ~/ 2;
+
+    for (var i = 0; i < pairCount; i++) {
+      final caseValue = args[1 + i * 2].evaluate(context);
+      if (_switchValuesEqual(expression, caseValue)) {
+        return args[2 + i * 2].evaluate(context);
+      }
+    }
+
+    if (hasDefault) {
+      return args.last.evaluate(context);
+    }
+    return const FormulaValue.error(FormulaError.na);
+  }
+
+  bool _switchValuesEqual(FormulaValue a, FormulaValue b) {
+    final aNum = a.toNumber();
+    final bNum = b.toNumber();
+    if (aNum != null && bNum != null) return aNum == bNum;
+    return a.toText().toLowerCase() == b.toText().toLowerCase();
+  }
+}
+
+/// XOR(logical1, [logical2], ...) - Exclusive OR.
+class XorFunction extends FormulaFunction {
+  @override
+  String get name => 'XOR';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    var trueCount = 0;
+    for (final arg in args) {
+      final value = arg.evaluate(context);
+      if (value.isError) return value;
+      if (value.isTruthy) trueCount++;
+    }
+    return FormulaValue.boolean(trueCount.isOdd);
+  }
 }

@@ -14,6 +14,16 @@ void registerStatisticalFunctions(FunctionRegistry registry) {
     CountIfFunction(),
     SumIfFunction(),
     AverageIfFunction(),
+    SumIfsFunction(),
+    CountIfsFunction(),
+    AverageIfsFunction(),
+    MedianFunction(),
+    ModeSnglFunction(),
+    ModeAliasFunction(),
+    LargeFunction(),
+    SmallFunction(),
+    RankEqFunction(),
+    RankAliasFunction(),
   ]);
 }
 
@@ -186,6 +196,320 @@ class AverageIfFunction extends FormulaFunction {
     if (count == 0) return const FormulaValue.error(FormulaError.divZero);
     return FormulaValue.number(sum / count);
   }
+}
+
+/// SUMIFS(sum_range, criteria_range1, criteria1, ...) - Sum with multiple criteria.
+class SumIfsFunction extends FormulaFunction {
+  @override
+  String get name => 'SUMIFS';
+  @override
+  int get minArgs => 3;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    if ((args.length - 1).isOdd) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final sumRange = _flattenValues(args[0].evaluate(context));
+    final criteriaPairs = <(List<FormulaValue>, FormulaValue)>[];
+
+    for (var i = 1; i < args.length; i += 2) {
+      final range = _flattenValues(args[i].evaluate(context));
+      final criteria = args[i + 1].evaluate(context);
+      criteriaPairs.add((range, criteria));
+    }
+
+    var sum = 0.0;
+    for (var i = 0; i < sumRange.length; i++) {
+      var matchesAll = true;
+      for (final (range, criteria) in criteriaPairs) {
+        if (i >= range.length || !_matchesCriteria(range[i], criteria)) {
+          matchesAll = false;
+          break;
+        }
+      }
+      if (matchesAll) {
+        final n = sumRange[i].toNumber();
+        if (n != null) sum += n;
+      }
+    }
+    return FormulaValue.number(sum);
+  }
+}
+
+/// COUNTIFS(criteria_range1, criteria1, ...) - Count with multiple criteria.
+class CountIfsFunction extends FormulaFunction {
+  @override
+  String get name => 'COUNTIFS';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    if (args.length.isOdd) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final criteriaPairs = <(List<FormulaValue>, FormulaValue)>[];
+    for (var i = 0; i < args.length; i += 2) {
+      final range = _flattenValues(args[i].evaluate(context));
+      final criteria = args[i + 1].evaluate(context);
+      criteriaPairs.add((range, criteria));
+    }
+
+    final length = criteriaPairs.first.$1.length;
+    var count = 0;
+    for (var i = 0; i < length; i++) {
+      var matchesAll = true;
+      for (final (range, criteria) in criteriaPairs) {
+        if (i >= range.length || !_matchesCriteria(range[i], criteria)) {
+          matchesAll = false;
+          break;
+        }
+      }
+      if (matchesAll) count++;
+    }
+    return FormulaValue.number(count);
+  }
+}
+
+/// AVERAGEIFS(average_range, criteria_range1, criteria1, ...) - Average with multiple criteria.
+class AverageIfsFunction extends FormulaFunction {
+  @override
+  String get name => 'AVERAGEIFS';
+  @override
+  int get minArgs => 3;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    if ((args.length - 1).isOdd) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final avgRange = _flattenValues(args[0].evaluate(context));
+    final criteriaPairs = <(List<FormulaValue>, FormulaValue)>[];
+
+    for (var i = 1; i < args.length; i += 2) {
+      final range = _flattenValues(args[i].evaluate(context));
+      final criteria = args[i + 1].evaluate(context);
+      criteriaPairs.add((range, criteria));
+    }
+
+    var sum = 0.0;
+    var count = 0;
+    for (var i = 0; i < avgRange.length; i++) {
+      var matchesAll = true;
+      for (final (range, criteria) in criteriaPairs) {
+        if (i >= range.length || !_matchesCriteria(range[i], criteria)) {
+          matchesAll = false;
+          break;
+        }
+      }
+      if (matchesAll) {
+        final n = avgRange[i].toNumber();
+        if (n != null) {
+          sum += n;
+          count++;
+        }
+      }
+    }
+    if (count == 0) return const FormulaValue.error(FormulaError.divZero);
+    return FormulaValue.number(sum / count);
+  }
+}
+
+/// MEDIAN(number1, [number2], ...) - Returns the middle value.
+class MedianFunction extends FormulaFunction {
+  @override
+  String get name => 'MEDIAN';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final numbers = collectNumbers(args, context).toList();
+    if (numbers.isEmpty) {
+      return const FormulaValue.error(FormulaError.num);
+    }
+    numbers.sort();
+    final mid = numbers.length ~/ 2;
+    if (numbers.length.isOdd) {
+      return FormulaValue.number(numbers[mid]);
+    }
+    return FormulaValue.number((numbers[mid - 1] + numbers[mid]) / 2);
+  }
+}
+
+/// MODE.SNGL(number1, [number2], ...) - Returns the most frequent value.
+class ModeSnglFunction extends FormulaFunction {
+  @override
+  String get name => 'MODE.SNGL';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final numbers = collectNumbers(args, context).toList();
+    if (numbers.isEmpty) {
+      return const FormulaValue.error(FormulaError.na);
+    }
+
+    final freq = <num, int>{};
+    for (final n in numbers) {
+      freq[n] = (freq[n] ?? 0) + 1;
+    }
+
+    num? modeValue;
+    var maxCount = 1;
+    for (final entry in freq.entries) {
+      if (entry.value > maxCount) {
+        maxCount = entry.value;
+        modeValue = entry.key;
+      }
+    }
+
+    if (modeValue == null) {
+      return const FormulaValue.error(FormulaError.na);
+    }
+    return FormulaValue.number(modeValue);
+  }
+}
+
+/// MODE - Alias for MODE.SNGL.
+class ModeAliasFunction extends ModeSnglFunction {
+  @override
+  String get name => 'MODE';
+}
+
+/// LARGE(array, k) - Returns the k-th largest value.
+class LargeFunction extends FormulaFunction {
+  @override
+  String get name => 'LARGE';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final arrayValue = args[0].evaluate(context);
+    if (arrayValue.isError) return arrayValue;
+    final kValue = args[1].evaluate(context);
+    final k = kValue.toNumber()?.toInt();
+
+    if (k == null) return const FormulaValue.error(FormulaError.value);
+
+    final numbers = <num>[];
+    if (arrayValue is RangeValue) {
+      numbers.addAll(arrayValue.numbers);
+    } else {
+      final n = arrayValue.toNumber();
+      if (n != null) numbers.add(n);
+    }
+
+    if (k < 1 || k > numbers.length) {
+      return const FormulaValue.error(FormulaError.num);
+    }
+
+    numbers.sort((a, b) => b.compareTo(a)); // Descending
+    return FormulaValue.number(numbers[k - 1]);
+  }
+}
+
+/// SMALL(array, k) - Returns the k-th smallest value.
+class SmallFunction extends FormulaFunction {
+  @override
+  String get name => 'SMALL';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final arrayValue = args[0].evaluate(context);
+    if (arrayValue.isError) return arrayValue;
+    final kValue = args[1].evaluate(context);
+    final k = kValue.toNumber()?.toInt();
+
+    if (k == null) return const FormulaValue.error(FormulaError.value);
+
+    final numbers = <num>[];
+    if (arrayValue is RangeValue) {
+      numbers.addAll(arrayValue.numbers);
+    } else {
+      final n = arrayValue.toNumber();
+      if (n != null) numbers.add(n);
+    }
+
+    if (k < 1 || k > numbers.length) {
+      return const FormulaValue.error(FormulaError.num);
+    }
+
+    numbers.sort();
+    return FormulaValue.number(numbers[k - 1]);
+  }
+}
+
+/// RANK.EQ(number, ref, [order]) - Rank of a number in a list.
+class RankEqFunction extends FormulaFunction {
+  @override
+  String get name => 'RANK.EQ';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 3;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final number = values[0].toNumber();
+    final refValue = values[1];
+    final order = args.length > 2 ? values[2].toNumber()?.toInt() ?? 0 : 0;
+
+    if (number == null) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final numbers = <num>[];
+    if (refValue is RangeValue) {
+      numbers.addAll(refValue.numbers);
+    } else {
+      final n = refValue.toNumber();
+      if (n != null) numbers.add(n);
+    }
+
+    if (!numbers.contains(number)) {
+      return const FormulaValue.error(FormulaError.na);
+    }
+
+    if (order == 0) {
+      // Descending rank (largest = 1)
+      final rank = numbers.where((n) => n > number).length + 1;
+      return FormulaValue.number(rank);
+    } else {
+      // Ascending rank (smallest = 1)
+      final rank = numbers.where((n) => n < number).length + 1;
+      return FormulaValue.number(rank);
+    }
+  }
+}
+
+/// RANK - Alias for RANK.EQ.
+class RankAliasFunction extends RankEqFunction {
+  @override
+  String get name => 'RANK';
 }
 
 // -- Shared helpers -----------------------------------------------------------

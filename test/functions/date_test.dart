@@ -197,4 +197,306 @@ void main() {
       expect(roundTrip, original);
     });
   });
+
+  group('DAYS', () {
+    test('returns difference between dates', () {
+      final jan1 = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final jan31 = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(31),
+      ]);
+      final result = eval(registry.get('DAYS')!, [
+        NumberNode((jan31 as NumberValue).value),
+        NumberNode((jan1 as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(30));
+    });
+
+    test('negative when end < start', () {
+      final jan1 = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final jan31 = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(31),
+      ]);
+      final result = eval(registry.get('DAYS')!, [
+        NumberNode((jan1 as NumberValue).value),
+        NumberNode((jan31 as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(-30));
+    });
+  });
+
+  group('DATEDIF', () {
+    test('unit Y returns full years', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2020),
+        const NumberNode(3),
+        const NumberNode(15),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(7),
+        const NumberNode(4),
+      ]);
+      final result = eval(registry.get('DATEDIF')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const TextNode('Y'),
+      ]);
+      expect(result, const NumberValue(4));
+    });
+
+    test('unit M returns full months', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(15),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(4),
+        const NumberNode(20),
+      ]);
+      final result = eval(registry.get('DATEDIF')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const TextNode('M'),
+      ]);
+      expect(result, const NumberValue(3));
+    });
+
+    test('unit D returns days', () {
+      final start = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final end = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(31),
+      ]);
+      final result = eval(registry.get('DATEDIF')!, [
+        NumberNode((start as NumberValue).value),
+        NumberNode((end as NumberValue).value),
+        const TextNode('D'),
+      ]);
+      expect(result, const NumberValue(30));
+    });
+
+    test('start > end returns #NUM!', () {
+      final result = eval(registry.get('DATEDIF')!, [
+        const NumberNode(45300),
+        const NumberNode(45200),
+        const TextNode('D'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
+
+  group('DATEVALUE', () {
+    test('parses ISO format', () {
+      final result = eval(
+          registry.get('DATEVALUE')!, [const TextNode('2024-01-01')]);
+      expect(result, const NumberValue(45292));
+    });
+
+    test('parses M/D/YYYY format', () {
+      final result = eval(
+          registry.get('DATEVALUE')!, [const TextNode('1/1/2024')]);
+      expect(result, const NumberValue(45292));
+    });
+
+    test('invalid text returns #VALUE!', () {
+      final result = eval(
+          registry.get('DATEVALUE')!, [const TextNode('not a date')]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('WEEKDAY', () {
+    test('returns day of week (default type 1: Sun=1..Sat=7)', () {
+      // 2024-01-01 is a Monday
+      final serial = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final result = eval(registry.get('WEEKDAY')!, [
+        NumberNode((serial as NumberValue).value),
+      ]);
+      expect(result, const NumberValue(2)); // Monday = 2 in type 1
+    });
+
+    test('type 2: Mon=1..Sun=7', () {
+      final serial = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      final result = eval(registry.get('WEEKDAY')!, [
+        NumberNode((serial as NumberValue).value),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(1)); // Monday = 1 in type 2
+    });
+  });
+
+  group('HOUR', () {
+    test('extracts hour from time', () {
+      // 0.5 = noon (12:00:00)
+      final result = eval(registry.get('HOUR')!, [const NumberNode(0.5)]);
+      expect(result, const NumberValue(12));
+    });
+
+    test('extracts hour from full datetime', () {
+      // 45292.75 = 6pm on Jan 1 2024
+      final result =
+          eval(registry.get('HOUR')!, [const NumberNode(45292.75)]);
+      expect(result, const NumberValue(18));
+    });
+  });
+
+  group('MINUTE', () {
+    test('extracts minute from time', () {
+      // 0.5 + 30min/1440 = 12:30
+      final result = eval(
+          registry.get('MINUTE')!, [NumberNode(0.5 + 30 / 1440)]);
+      expect(result, const NumberValue(30));
+    });
+  });
+
+  group('SECOND', () {
+    test('extracts second from time', () {
+      // 45 seconds = 45/86400
+      final result = eval(
+          registry.get('SECOND')!, [NumberNode(45 / 86400)]);
+      expect(result, const NumberValue(45));
+    });
+  });
+
+  group('TIME', () {
+    test('constructs time fraction', () {
+      final result = eval(registry.get('TIME')!, [
+        const NumberNode(12),
+        const NumberNode(0),
+        const NumberNode(0),
+      ]);
+      expect(result, const NumberValue(0.5)); // Noon = 0.5
+    });
+
+    test('6am = 0.25', () {
+      final result = eval(registry.get('TIME')!, [
+        const NumberNode(6),
+        const NumberNode(0),
+        const NumberNode(0),
+      ]);
+      expect(result, const NumberValue(0.25));
+    });
+  });
+
+  group('EDATE', () {
+    test('adds months to date', () {
+      final jan = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(15),
+      ]);
+      final result = eval(registry.get('EDATE')!, [
+        NumberNode((jan as NumberValue).value),
+        const NumberNode(3),
+      ]);
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(4),
+        const NumberNode(15),
+      ]);
+      expect(result, expected);
+    });
+
+    test('negative months subtracts', () {
+      final mar = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(3),
+        const NumberNode(15),
+      ]);
+      final result = eval(registry.get('EDATE')!, [
+        NumberNode((mar as NumberValue).value),
+        const NumberNode(-2),
+      ]);
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(15),
+      ]);
+      expect(result, expected);
+    });
+  });
+
+  group('EOMONTH', () {
+    test('returns end of month', () {
+      final jan15 = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(15),
+      ]);
+      final result = eval(registry.get('EOMONTH')!, [
+        NumberNode((jan15 as NumberValue).value),
+        const NumberNode(0),
+      ]);
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(31),
+      ]);
+      expect(result, expected);
+    });
+
+    test('returns end of next month', () {
+      final jan15 = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(1),
+        const NumberNode(15),
+      ]);
+      final result = eval(registry.get('EOMONTH')!, [
+        NumberNode((jan15 as NumberValue).value),
+        const NumberNode(1),
+      ]);
+      // Feb 2024 has 29 days (leap year)
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(2),
+        const NumberNode(29),
+      ]);
+      expect(result, expected);
+    });
+
+    test('negative months goes backward', () {
+      final mar15 = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(3),
+        const NumberNode(15),
+      ]);
+      final result = eval(registry.get('EOMONTH')!, [
+        NumberNode((mar15 as NumberValue).value),
+        const NumberNode(-1),
+      ]);
+      final expected = eval(registry.get('DATE')!, [
+        const NumberNode(2024),
+        const NumberNode(2),
+        const NumberNode(29),
+      ]);
+      expect(result, expected);
+    });
+  });
 }

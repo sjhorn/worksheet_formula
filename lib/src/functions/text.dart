@@ -20,6 +20,14 @@ void registerTextFunctions(FunctionRegistry registry) {
     UpperFunction(),
     TrimFunction(),
     TextFunction(),
+    FindFunction(),
+    SearchFunction(),
+    SubstituteFunction(),
+    ReplaceFunction(),
+    ValueFunction(),
+    TextJoinFunction(),
+    ProperFunction(),
+    ExactFunction(),
   ]);
 }
 
@@ -214,6 +222,274 @@ class TextFunction extends FormulaFunction {
 
     final format = values[1].toText();
     return FormulaValue.text(_formatNumber(number.toDouble(), format));
+  }
+}
+
+/// FIND(find_text, within_text, [start_num]) - Case-sensitive search.
+class FindFunction extends FormulaFunction {
+  @override
+  String get name => 'FIND';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 3;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final findText = values[0].toText();
+    final withinText = values[1].toText();
+    final startNum = args.length > 2 ? values[2].toNumber()?.toInt() ?? 1 : 1;
+
+    if (startNum < 1) return const FormulaValue.error(FormulaError.value);
+
+    final startIndex = startNum - 1;
+    if (startIndex >= withinText.length && findText.isNotEmpty) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final pos = withinText.indexOf(findText, startIndex);
+    if (pos == -1) return const FormulaValue.error(FormulaError.value);
+
+    return FormulaValue.number(pos + 1); // 1-indexed
+  }
+}
+
+/// SEARCH(find_text, within_text, [start_num]) - Case-insensitive search with wildcards.
+class SearchFunction extends FormulaFunction {
+  @override
+  String get name => 'SEARCH';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 3;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final findText = values[0].toText();
+    final withinText = values[1].toText();
+    final startNum = args.length > 2 ? values[2].toNumber()?.toInt() ?? 1 : 1;
+
+    if (startNum < 1) return const FormulaValue.error(FormulaError.value);
+
+    final startIndex = startNum - 1;
+    if (startIndex >= withinText.length && findText.isNotEmpty) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    // Convert wildcards to regex: ? -> . and * -> .*
+    final pattern = StringBuffer();
+    for (var i = 0; i < findText.length; i++) {
+      final ch = findText[i];
+      if (ch == '~' && i + 1 < findText.length) {
+        // Escape sequence: ~? ~* ~~ are literal
+        pattern.write(RegExp.escape(findText[i + 1]));
+        i++;
+      } else if (ch == '?') {
+        pattern.write('.');
+      } else if (ch == '*') {
+        pattern.write('.*');
+      } else {
+        pattern.write(RegExp.escape(ch));
+      }
+    }
+
+    final regex = RegExp(pattern.toString(), caseSensitive: false);
+    final searchIn = withinText.substring(startIndex);
+    final match = regex.firstMatch(searchIn);
+
+    if (match == null) return const FormulaValue.error(FormulaError.value);
+
+    return FormulaValue.number(startIndex + match.start + 1); // 1-indexed
+  }
+}
+
+/// SUBSTITUTE(text, old_text, new_text, [instance_num]) - Replace text.
+class SubstituteFunction extends FormulaFunction {
+  @override
+  String get name => 'SUBSTITUTE';
+  @override
+  int get minArgs => 3;
+  @override
+  int get maxArgs => 4;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final text = values[0].toText();
+    final oldText = values[1].toText();
+    final newText = values[2].toText();
+    final instanceNum =
+        args.length > 3 ? values[3].toNumber()?.toInt() : null;
+
+    if (instanceNum != null && instanceNum < 1) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    if (oldText.isEmpty) return FormulaValue.text(text);
+
+    if (instanceNum == null) {
+      // Replace all occurrences
+      return FormulaValue.text(text.replaceAll(oldText, newText));
+    }
+
+    // Replace only the nth occurrence
+    var count = 0;
+    var startIndex = 0;
+    while (startIndex < text.length) {
+      final pos = text.indexOf(oldText, startIndex);
+      if (pos == -1) break;
+      count++;
+      if (count == instanceNum) {
+        final result = text.substring(0, pos) +
+            newText +
+            text.substring(pos + oldText.length);
+        return FormulaValue.text(result);
+      }
+      startIndex = pos + oldText.length;
+    }
+
+    return FormulaValue.text(text); // Instance not found
+  }
+}
+
+/// REPLACE(old_text, start_num, num_chars, new_text) - Replace by position.
+class ReplaceFunction extends FormulaFunction {
+  @override
+  String get name => 'REPLACE';
+  @override
+  int get minArgs => 4;
+  @override
+  int get maxArgs => 4;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final text = values[0].toText();
+    final startNum = values[1].toNumber()?.toInt();
+    final numChars = values[2].toNumber()?.toInt();
+    final newText = values[3].toText();
+
+    if (startNum == null || numChars == null) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+    if (startNum < 1 || numChars < 0) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final start = startNum - 1; // 1-indexed to 0-indexed
+    final end = start + numChars;
+    final before = text.substring(0, start > text.length ? text.length : start);
+    final after =
+        end >= text.length ? '' : text.substring(end);
+
+    return FormulaValue.text('$before$newText$after');
+  }
+}
+
+/// VALUE(text) - Convert text to number.
+class ValueFunction extends FormulaFunction {
+  @override
+  String get name => 'VALUE';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    if (value is NumberValue) return value;
+    final text = value.toText().trim();
+    final n = num.tryParse(text);
+    if (n == null) return const FormulaValue.error(FormulaError.value);
+    return FormulaValue.number(n);
+  }
+}
+
+/// TEXTJOIN(delimiter, ignore_empty, text1, [text2], ...) - Join with delimiter.
+class TextJoinFunction extends FormulaFunction {
+  @override
+  String get name => 'TEXTJOIN';
+  @override
+  int get minArgs => 3;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final delimiterValue = args[0].evaluate(context);
+    if (delimiterValue.isError) return delimiterValue;
+    final delimiter = delimiterValue.toText();
+
+    final ignoreEmptyValue = args[1].evaluate(context);
+    if (ignoreEmptyValue.isError) return ignoreEmptyValue;
+    final ignoreEmpty = ignoreEmptyValue.isTruthy;
+
+    final parts = <String>[];
+    for (var i = 2; i < args.length; i++) {
+      final value = args[i].evaluate(context);
+      if (value.isError) return value;
+      if (value is RangeValue) {
+        for (final cell in value.flat) {
+          final text = cell.toText();
+          if (ignoreEmpty && text.isEmpty) continue;
+          parts.add(text);
+        }
+      } else {
+        final text = value.toText();
+        if (ignoreEmpty && text.isEmpty) continue;
+        parts.add(text);
+      }
+    }
+
+    return FormulaValue.text(parts.join(delimiter));
+  }
+}
+
+/// PROPER(text) - Capitalize first letter of each word.
+class ProperFunction extends FormulaFunction {
+  @override
+  String get name => 'PROPER';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final text = value.toText();
+    final buffer = StringBuffer();
+    var capitalizeNext = true;
+    for (final ch in text.runes) {
+      final char = String.fromCharCode(ch);
+      if (char.trim().isEmpty || !RegExp(r'[a-zA-Z]').hasMatch(char)) {
+        buffer.write(char);
+        capitalizeNext = true;
+      } else {
+        buffer.write(capitalizeNext ? char.toUpperCase() : char.toLowerCase());
+        capitalizeNext = false;
+      }
+    }
+    return FormulaValue.text(buffer.toString());
+  }
+}
+
+/// EXACT(text1, text2) - Case-sensitive comparison.
+class ExactFunction extends FormulaFunction {
+  @override
+  String get name => 'EXACT';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    return FormulaValue.boolean(values[0].toText() == values[1].toText());
   }
 }
 

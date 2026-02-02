@@ -313,6 +313,22 @@ void main() {
       final fn = node as FunctionCallNode;
       expect(fn.arguments[0], isA<RangeRefNode>());
     });
+
+    test('dotted function name', () {
+      final node = parser.parse('MODE.SNGL(1,2,3)');
+      expect(node, isA<FunctionCallNode>());
+      final fn = node as FunctionCallNode;
+      expect(fn.name, 'MODE.SNGL');
+      expect(fn.arguments.length, 3);
+    });
+
+    test('dotted function name with two dots', () {
+      final node = parser.parse('CEILING.MATH(5)');
+      expect(node, isA<FunctionCallNode>());
+      final fn = node as FunctionCallNode;
+      expect(fn.name, 'CEILING.MATH');
+      expect(fn.arguments.length, 1);
+    });
   });
 
   group('complex expressions', () {

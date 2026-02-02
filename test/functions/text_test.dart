@@ -353,4 +353,232 @@ void main() {
       expect(result, const TextValue('.5'));
     });
   });
+
+  group('FIND', () {
+    test('finds position case-sensitive', () {
+      final result = eval(registry.get('FIND')!, [
+        const TextNode('World'),
+        const TextNode('Hello World'),
+      ]);
+      expect(result, const NumberValue(7));
+    });
+
+    test('case-sensitive: lowercase not found', () {
+      final result = eval(registry.get('FIND')!, [
+        const TextNode('world'),
+        const TextNode('Hello World'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+
+    test('with start_num', () {
+      final result = eval(registry.get('FIND')!, [
+        const TextNode('l'),
+        const TextNode('Hello'),
+        const NumberNode(4),
+      ]);
+      expect(result, const NumberValue(4));
+    });
+
+    test('not found returns #VALUE!', () {
+      final result = eval(registry.get('FIND')!, [
+        const TextNode('xyz'),
+        const TextNode('Hello'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('SEARCH', () {
+    test('case-insensitive search', () {
+      final result = eval(registry.get('SEARCH')!, [
+        const TextNode('world'),
+        const TextNode('Hello World'),
+      ]);
+      expect(result, const NumberValue(7));
+    });
+
+    test('wildcard ? matches single char', () {
+      final result = eval(registry.get('SEARCH')!, [
+        const TextNode('h?llo'),
+        const TextNode('Hello World'),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('wildcard * matches multiple chars', () {
+      final result = eval(registry.get('SEARCH')!, [
+        const TextNode('H*d'),
+        const TextNode('Hello World'),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('not found returns #VALUE!', () {
+      final result = eval(registry.get('SEARCH')!, [
+        const TextNode('xyz'),
+        const TextNode('Hello'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('SUBSTITUTE', () {
+    test('replaces all occurrences', () {
+      final result = eval(registry.get('SUBSTITUTE')!, [
+        const TextNode('Hello Hello'),
+        const TextNode('Hello'),
+        const TextNode('World'),
+      ]);
+      expect(result, const TextValue('World World'));
+    });
+
+    test('replaces specific instance', () {
+      final result = eval(registry.get('SUBSTITUTE')!, [
+        const TextNode('aaa'),
+        const TextNode('a'),
+        const TextNode('b'),
+        const NumberNode(2),
+      ]);
+      expect(result, const TextValue('aba'));
+    });
+
+    test('empty old_text returns original', () {
+      final result = eval(registry.get('SUBSTITUTE')!, [
+        const TextNode('Hello'),
+        const TextNode(''),
+        const TextNode('World'),
+      ]);
+      expect(result, const TextValue('Hello'));
+    });
+  });
+
+  group('REPLACE', () {
+    test('replaces by position', () {
+      final result = eval(registry.get('REPLACE')!, [
+        const TextNode('Hello World'),
+        const NumberNode(7),
+        const NumberNode(5),
+        const TextNode('Dart'),
+      ]);
+      expect(result, const TextValue('Hello Dart'));
+    });
+
+    test('start < 1 returns #VALUE!', () {
+      final result = eval(registry.get('REPLACE')!, [
+        const TextNode('Hello'),
+        const NumberNode(0),
+        const NumberNode(1),
+        const TextNode('X'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('VALUE', () {
+    test('converts text to number', () {
+      final result =
+          eval(registry.get('VALUE')!, [const TextNode('42')]);
+      expect(result, const NumberValue(42));
+    });
+
+    test('converts decimal text', () {
+      final result =
+          eval(registry.get('VALUE')!, [const TextNode('3.14')]);
+      expect(result, const NumberValue(3.14));
+    });
+
+    test('non-numeric text returns #VALUE!', () {
+      final result =
+          eval(registry.get('VALUE')!, [const TextNode('abc')]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+
+    test('number input passed through', () {
+      final result =
+          eval(registry.get('VALUE')!, [const NumberNode(42)]);
+      expect(result, const NumberValue(42));
+    });
+  });
+
+  group('TEXTJOIN', () {
+    test('joins with delimiter', () {
+      final result = eval(registry.get('TEXTJOIN')!, [
+        const TextNode(', '),
+        const BooleanNode(false),
+        const TextNode('a'),
+        const TextNode('b'),
+        const TextNode('c'),
+      ]);
+      expect(result, const TextValue('a, b, c'));
+    });
+
+    test('ignores empty when true', () {
+      final result = eval(registry.get('TEXTJOIN')!, [
+        const TextNode('-'),
+        const BooleanNode(true),
+        const TextNode('a'),
+        const TextNode(''),
+        const TextNode('c'),
+      ]);
+      expect(result, const TextValue('a-c'));
+    });
+
+    test('includes empty when false', () {
+      final result = eval(registry.get('TEXTJOIN')!, [
+        const TextNode('-'),
+        const BooleanNode(false),
+        const TextNode('a'),
+        const TextNode(''),
+        const TextNode('c'),
+      ]);
+      expect(result, const TextValue('a--c'));
+    });
+  });
+
+  group('PROPER', () {
+    test('capitalizes first letter of each word', () {
+      final result =
+          eval(registry.get('PROPER')!, [const TextNode('hello world')]);
+      expect(result, const TextValue('Hello World'));
+    });
+
+    test('handles mixed case', () {
+      final result =
+          eval(registry.get('PROPER')!, [const TextNode('hELLO wORLD')]);
+      expect(result, const TextValue('Hello World'));
+    });
+
+    test('handles single word', () {
+      final result =
+          eval(registry.get('PROPER')!, [const TextNode('hello')]);
+      expect(result, const TextValue('Hello'));
+    });
+  });
+
+  group('EXACT', () {
+    test('returns true for identical strings', () {
+      final result = eval(registry.get('EXACT')!, [
+        const TextNode('Hello'),
+        const TextNode('Hello'),
+      ]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for different case', () {
+      final result = eval(registry.get('EXACT')!, [
+        const TextNode('Hello'),
+        const TextNode('hello'),
+      ]);
+      expect(result, const BooleanValue(false));
+    });
+
+    test('returns false for different strings', () {
+      final result = eval(registry.get('EXACT')!, [
+        const TextNode('Hello'),
+        const TextNode('World'),
+      ]);
+      expect(result, const BooleanValue(false));
+    });
+  });
 }

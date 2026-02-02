@@ -270,4 +270,224 @@ void main() {
       expect(result, const NumberValue(2));
     });
   });
+
+  group('HLOOKUP', () {
+    final table = const RangeValue([
+      [NumberValue(1), NumberValue(2), NumberValue(3)],
+      [TextValue('apple'), TextValue('banana'), TextValue('cherry')],
+      [NumberValue(10), NumberValue(20), NumberValue(30)],
+    ]);
+
+    test('exact match in first row', () {
+      context.rangeOverride = table;
+      final result = eval(registry.get('HLOOKUP')!, [
+        const NumberNode(2),
+        RangeRefNode(A1Reference.parse('A1:C3')),
+        const NumberNode(2),
+        const BooleanNode(false),
+      ]);
+      expect(result, const TextValue('banana'));
+    });
+
+    test('row_index out of bounds returns #REF!', () {
+      context.rangeOverride = table;
+      final result = eval(registry.get('HLOOKUP')!, [
+        const NumberNode(1),
+        RangeRefNode(A1Reference.parse('A1:C3')),
+        const NumberNode(5),
+        const BooleanNode(false),
+      ]);
+      expect(result, const ErrorValue(FormulaError.ref));
+    });
+
+    test('not found returns #N/A', () {
+      context.rangeOverride = table;
+      final result = eval(registry.get('HLOOKUP')!, [
+        const NumberNode(99),
+        RangeRefNode(A1Reference.parse('A1:C3')),
+        const NumberNode(2),
+        const BooleanNode(false),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+  });
+
+  group('LOOKUP', () {
+    test('approximate match in sorted vector', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final result = eval(registry.get('LOOKUP')!, [
+        const NumberNode(25),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+      ]);
+      expect(result, const NumberValue(20));
+    });
+
+    test('not found returns #N/A', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+      ]);
+      final result = eval(registry.get('LOOKUP')!, [
+        const NumberNode(5),
+        RangeRefNode(A1Reference.parse('A1:A2')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+  });
+
+  group('CHOOSE', () {
+    test('returns value at index', () {
+      final result = eval(registry.get('CHOOSE')!, [
+        const NumberNode(2),
+        const TextNode('a'),
+        const TextNode('b'),
+        const TextNode('c'),
+      ]);
+      expect(result, const TextValue('b'));
+    });
+
+    test('index 1 returns first value', () {
+      final result = eval(registry.get('CHOOSE')!, [
+        const NumberNode(1),
+        const TextNode('first'),
+        const TextNode('second'),
+      ]);
+      expect(result, const TextValue('first'));
+    });
+
+    test('index out of range returns #VALUE!', () {
+      final result = eval(registry.get('CHOOSE')!, [
+        const NumberNode(5),
+        const TextNode('a'),
+        const TextNode('b'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+
+    test('index < 1 returns #VALUE!', () {
+      final result = eval(registry.get('CHOOSE')!, [
+        const NumberNode(0),
+        const TextNode('a'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('XMATCH', () {
+    test('exact match returns position', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final result = eval(registry.get('XMATCH')!, [
+        const NumberNode(20),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+
+    test('not found returns #N/A', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+      ]);
+      final result = eval(registry.get('XMATCH')!, [
+        const NumberNode(99),
+        RangeRefNode(A1Reference.parse('A1:A2')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+
+    test('next smaller match', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final result = eval(registry.get('XMATCH')!, [
+        const NumberNode(25),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        const NumberNode(-1),
+      ]);
+      expect(result, const NumberValue(2)); // 20 is at position 2
+    });
+
+    test('next larger match', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(10)],
+        [NumberValue(20)],
+        [NumberValue(30)],
+      ]);
+      final result = eval(registry.get('XMATCH')!, [
+        const NumberNode(25),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        const NumberNode(1),
+      ]);
+      expect(result, const NumberValue(3)); // 30 is at position 3
+    });
+
+    test('wildcard match', () {
+      context.rangeOverride = const RangeValue([
+        [TextValue('apple')],
+        [TextValue('banana')],
+        [TextValue('cherry')],
+      ]);
+      final result = eval(registry.get('XMATCH')!, [
+        const TextNode('ban*'),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        const NumberNode(2),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+  });
+
+  group('XLOOKUP', () {
+    test('exact match returns from return array', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+        [NumberValue(3)],
+      ]);
+      // We need two different ranges; since our test context returns the same
+      // override, we'll test with the same data
+      final result = eval(registry.get('XLOOKUP')!, [
+        const NumberNode(2),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+        RangeRefNode(A1Reference.parse('A1:A3')),
+      ]);
+      expect(result, const NumberValue(2));
+    });
+
+    test('not found returns #N/A by default', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+      ]);
+      final result = eval(registry.get('XLOOKUP')!, [
+        const NumberNode(99),
+        RangeRefNode(A1Reference.parse('A1:A2')),
+        RangeRefNode(A1Reference.parse('A1:A2')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+
+    test('not found returns if_not_found value', () {
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1)],
+        [NumberValue(2)],
+      ]);
+      final result = eval(registry.get('XLOOKUP')!, [
+        const NumberNode(99),
+        RangeRefNode(A1Reference.parse('A1:A2')),
+        RangeRefNode(A1Reference.parse('A1:A2')),
+        const TextNode('Not found'),
+      ]);
+      expect(result, const TextValue('Not found'));
+    });
+  });
 }

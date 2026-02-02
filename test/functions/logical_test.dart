@@ -201,4 +201,137 @@ void main() {
       expect(result, const BooleanValue(false));
     });
   });
+
+  group('IFS', () {
+    test('returns first matching value', () {
+      final result = eval(registry.get('IFS')!, [
+        const BooleanNode(false),
+        const TextNode('no'),
+        const BooleanNode(true),
+        const TextNode('yes'),
+      ]);
+      expect(result, const TextValue('yes'));
+    });
+
+    test('returns first truthy match', () {
+      final result = eval(registry.get('IFS')!, [
+        const BooleanNode(true),
+        const TextNode('first'),
+        const BooleanNode(true),
+        const TextNode('second'),
+      ]);
+      expect(result, const TextValue('first'));
+    });
+
+    test('returns #N/A when no condition matches', () {
+      final result = eval(registry.get('IFS')!, [
+        const BooleanNode(false),
+        const TextNode('no'),
+        const BooleanNode(false),
+        const TextNode('nope'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+
+    test('propagates condition error', () {
+      final result = eval(registry.get('IFS')!, [
+        const ErrorNode(FormulaError.ref),
+        const TextNode('val'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.ref));
+    });
+  });
+
+  group('SWITCH', () {
+    test('matches first case', () {
+      final result = eval(registry.get('SWITCH')!, [
+        const NumberNode(2),
+        const NumberNode(1),
+        const TextNode('one'),
+        const NumberNode(2),
+        const TextNode('two'),
+        const NumberNode(3),
+        const TextNode('three'),
+      ]);
+      expect(result, const TextValue('two'));
+    });
+
+    test('returns default when no match', () {
+      final result = eval(registry.get('SWITCH')!, [
+        const NumberNode(99),
+        const NumberNode(1),
+        const TextNode('one'),
+        const TextNode('default'),
+      ]);
+      expect(result, const TextValue('default'));
+    });
+
+    test('returns #N/A when no match and no default', () {
+      final result = eval(registry.get('SWITCH')!, [
+        const NumberNode(99),
+        const NumberNode(1),
+        const TextNode('one'),
+        const NumberNode(2),
+        const TextNode('two'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.na));
+    });
+
+    test('text matching is case-insensitive', () {
+      final result = eval(registry.get('SWITCH')!, [
+        const TextNode('hello'),
+        const TextNode('HELLO'),
+        const TextNode('matched'),
+      ]);
+      expect(result, const TextValue('matched'));
+    });
+
+    test('propagates expression error', () {
+      final result = eval(registry.get('SWITCH')!, [
+        const ErrorNode(FormulaError.value),
+        const NumberNode(1),
+        const TextNode('one'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('XOR', () {
+    test('returns true for single true', () {
+      final result = eval(registry.get('XOR')!, [const BooleanNode(true)]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for two trues', () {
+      final result = eval(registry.get('XOR')!, [
+        const BooleanNode(true),
+        const BooleanNode(true),
+      ]);
+      expect(result, const BooleanValue(false));
+    });
+
+    test('returns true for three trues (odd)', () {
+      final result = eval(registry.get('XOR')!, [
+        const BooleanNode(true),
+        const BooleanNode(true),
+        const BooleanNode(true),
+      ]);
+      expect(result, const BooleanValue(true));
+    });
+
+    test('returns false for all false', () {
+      final result = eval(registry.get('XOR')!, [
+        const BooleanNode(false),
+        const BooleanNode(false),
+      ]);
+      expect(result, const BooleanValue(false));
+    });
+
+    test('propagates error', () {
+      final result = eval(registry.get('XOR')!, [
+        const ErrorNode(FormulaError.ref),
+      ]);
+      expect(result, const ErrorValue(FormulaError.ref));
+    });
+  });
 }
