@@ -21,7 +21,7 @@ class FormulaWorksheetData implements WorksheetData {
   late final StreamSubscription<DataChangeEvent> _innerSub;
 
   FormulaWorksheetData(this._inner, {FormulaEngine? engine})
-      : engine = engine ?? FormulaEngine() {
+    : engine = engine ?? FormulaEngine() {
     _innerSub = _inner.changes.listen(_onInnerChange);
   }
 
@@ -157,8 +157,8 @@ class FormulaWorksheetData implements WorksheetData {
 
   @override
   Iterable<MapEntry<CellCoordinate, CellValue>> getCellsInRange(
-          CellRange range) =>
-      _inner.getCellsInRange(range);
+    CellRange range,
+  ) => _inner.getCellsInRange(range);
 
   @override
   void clearRange(CellRange range) => _inner.clearRange(range);
@@ -169,5 +169,31 @@ class FormulaWorksheetData implements WorksheetData {
     _changeController.close();
     _cache.clear();
     _dependencies.clear();
+  }
+
+  @override
+  Future<void> batchUpdateAsync(
+    Future<void> Function(WorksheetDataBatch batch) updates,
+  ) {
+    // TODO: implement batchUpdateAsync
+    throw UnimplementedError();
+  }
+
+  @override
+  void fillRange(
+    CellCoordinate source,
+    CellRange range, [
+    Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
+  ]) {
+    // TODO: implement fillRange
+  }
+
+  @override
+  void smartFill(
+    CellRange range,
+    CellCoordinate destination, [
+    Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
+  ]) {
+    // TODO: implement smartFill
   }
 }
