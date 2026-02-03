@@ -1,3 +1,4 @@
+import 'array.dart';
 import 'date.dart';
 import 'function.dart';
 import 'information.dart';
@@ -21,6 +22,7 @@ class FunctionRegistry {
       registerLookupFunctions(this);
       registerDateFunctions(this);
       registerInformationFunctions(this);
+      registerArrayFunctions(this);
     }
   }
 
