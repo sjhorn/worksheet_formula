@@ -68,12 +68,14 @@ worksheet_formula/
 │   │   ├── functions/
 │   │   │   ├── registry.dart           # FunctionRegistry
 │   │   │   ├── function.dart           # FormulaFunction base
-│   │   │   ├── math.dart               # SUM, AVERAGE, etc.
-│   │   │   ├── text.dart               # CONCAT, LEFT, RIGHT, etc.
-│   │   │   ├── logical.dart            # IF, AND, OR, etc.
-│   │   │   ├── lookup.dart             # VLOOKUP, INDEX, MATCH, etc.
-│   │   │   ├── date.dart               # DATE, NOW, TODAY, etc.
-│   │   │   └── statistical.dart        # COUNT, COUNTIF, etc.
+│   │   │   ├── math.dart               # SUM, AVERAGE, SIN, PI, etc. (47)
+│   │   │   ├── text.dart               # CONCAT, LEFT, TEXTJOIN, etc. (31)
+│   │   │   ├── logical.dart            # IF, AND, OR, IFS, SWITCH, etc. (11)
+│   │   │   ├── lookup.dart             # VLOOKUP, XLOOKUP, INDEX, TRANSPOSE, etc. (18)
+│   │   │   ├── date.dart               # DATE, NOW, NETWORKDAYS, etc. (25)
+│   │   │   ├── statistical.dart        # COUNT, STDEV, PERCENTILE, etc. (35)
+│   │   │   ├── information.dart        # ISBLANK, ISERROR, TYPE, N, NA, etc. (15)
+│   │   │   └── array.dart              # FILTER, SORT, UNIQUE, SEQUENCE, etc. (17)
 │   │   └── dependencies/
 │   │       └── graph.dart              # Dependency tracking
 ├── pubspec.yaml
@@ -908,7 +910,9 @@ abstract class FormulaFunction {
 ```dart
 // lib/src/functions/registry.dart
 
+import 'array.dart';
 import 'function.dart';
+import 'information.dart';
 import 'math.dart';
 import 'text.dart';
 import 'logical.dart';
@@ -919,16 +923,18 @@ import 'statistical.dart';
 /// Registry of available formula functions
 class FunctionRegistry {
   final Map<String, FormulaFunction> _functions = {};
-  
+
   /// Create a new registry, optionally with built-in functions pre-registered
   FunctionRegistry({bool registerBuiltIns = true}) {
     if (registerBuiltIns) {
       registerMathFunctions(this);
-      registerTextFunctions(this);
       registerLogicalFunctions(this);
+      registerTextFunctions(this);
+      registerStatisticalFunctions(this);
       registerLookupFunctions(this);
       registerDateFunctions(this);
-      registerStatisticalFunctions(this);
+      registerInformationFunctions(this);
+      registerArrayFunctions(this);
     }
   }
   
@@ -2231,7 +2237,7 @@ class FormulaEngine {
 /// 
 /// This package provides:
 /// - Excel/Google Sheets compatible formula parsing
-/// - An extensible function registry with 50+ built-in functions
+/// - An extensible function registry with 199 built-in functions
 /// - Dependency tracking for efficient recalculation
 /// - Type-safe formula values and error handling
 /// 

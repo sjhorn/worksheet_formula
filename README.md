@@ -5,7 +5,8 @@ A standalone formula engine for spreadsheet-like calculations in Dart.
 ## Features
 
 - Excel/Google Sheets compatible formula parsing
-- 95 built-in functions (math, logical, text, statistical, lookup, date, information)
+- 199 built-in functions across 8 categories (math, logical, text, statistical, lookup, date, information, array)
+- Dynamic array functions (FILTER, SORT, UNIQUE, SEQUENCE, etc.)
 - Type-safe formula values with Excel-compatible error handling
 - Cell dependency tracking for efficient recalculation
 - Custom function registration
@@ -76,26 +77,29 @@ final result = engine.evaluateString('=SUM(A1:A2)', context);
 
 ## Built-in Functions
 
-### Math (19)
-`SUM`, `AVERAGE`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `SQRT`, `POWER`, `SUMPRODUCT`, `ROUNDUP`, `ROUNDDOWN`, `CEILING`, `FLOOR`, `SIGN`, `PRODUCT`, `RAND`, `RANDBETWEEN`
+### Math & Trigonometry (47)
+`SUM`, `AVERAGE`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `SQRT`, `POWER`, `SUMPRODUCT`, `ROUNDUP`, `ROUNDDOWN`, `CEILING`, `FLOOR`, `SIGN`, `PRODUCT`, `RAND`, `RANDBETWEEN`, `PI`, `LN`, `LOG`, `LOG10`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `DEGREES`, `RADIANS`, `EVEN`, `ODD`, `GCD`, `LCM`, `TRUNC`, `MROUND`, `QUOTIENT`, `COMBIN`, `COMBINA`, `FACT`, `FACTDOUBLE`, `SUMSQ`, `SUBTOTAL`, `AGGREGATE`
 
 ### Logical (11)
 `IF`, `AND`, `OR`, `NOT`, `IFERROR`, `IFNA`, `TRUE`, `FALSE`, `IFS`, `SWITCH`, `XOR`
 
-### Text (18)
-`CONCAT`, `CONCATENATE`, `LEFT`, `RIGHT`, `MID`, `LEN`, `LOWER`, `UPPER`, `TRIM`, `TEXT`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `VALUE`, `TEXTJOIN`, `PROPER`, `EXACT`
+### Text (31)
+`CONCAT`, `CONCATENATE`, `LEFT`, `RIGHT`, `MID`, `LEN`, `LOWER`, `UPPER`, `TRIM`, `TEXT`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `VALUE`, `TEXTJOIN`, `PROPER`, `EXACT`, `REPT`, `CHAR`, `CODE`, `CLEAN`, `DOLLAR`, `FIXED`, `T`, `NUMBERVALUE`, `UNICHAR`, `UNICODE`, `TEXTBEFORE`, `TEXTAFTER`, `TEXTSPLIT`
 
-### Statistical (16)
-`COUNT`, `COUNTA`, `COUNTBLANK`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `SUMIFS`, `COUNTIFS`, `AVERAGEIFS`, `MEDIAN`, `MODE.SNGL`, `MODE`, `LARGE`, `SMALL`, `RANK.EQ`, `RANK`
+### Statistical (35)
+`COUNT`, `COUNTA`, `COUNTBLANK`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `SUMIFS`, `COUNTIFS`, `AVERAGEIFS`, `MEDIAN`, `MODE.SNGL`, `MODE`, `LARGE`, `SMALL`, `RANK.EQ`, `RANK`, `STDEV.S`, `STDEV.P`, `VAR.S`, `VAR.P`, `PERCENTILE.INC`, `PERCENTILE.EXC`, `PERCENTRANK.INC`, `PERCENTRANK.EXC`, `RANK.AVG`, `FREQUENCY`, `AVEDEV`, `AVERAGEA`, `MAXA`, `MINA`, `TRIMMEAN`, `GEOMEAN`, `HARMEAN`, `MAXIFS`, `MINIFS`
 
-### Lookup (8)
-`VLOOKUP`, `INDEX`, `MATCH`, `HLOOKUP`, `LOOKUP`, `CHOOSE`, `XMATCH`, `XLOOKUP`
+### Lookup & Reference (18)
+`VLOOKUP`, `INDEX`, `MATCH`, `HLOOKUP`, `LOOKUP`, `CHOOSE`, `XMATCH`, `XLOOKUP`, `ROW`, `COLUMN`, `ROWS`, `COLUMNS`, `ADDRESS`, `INDIRECT`, `OFFSET`, `TRANSPOSE`, `HYPERLINK`, `AREAS`
 
-### Date/Time (16)
-`DATE`, `TODAY`, `NOW`, `YEAR`, `MONTH`, `DAY`, `DAYS`, `DATEDIF`, `DATEVALUE`, `WEEKDAY`, `HOUR`, `MINUTE`, `SECOND`, `TIME`, `EDATE`, `EOMONTH`
+### Date/Time (25)
+`DATE`, `TODAY`, `NOW`, `YEAR`, `MONTH`, `DAY`, `DAYS`, `DATEDIF`, `DATEVALUE`, `WEEKDAY`, `HOUR`, `MINUTE`, `SECOND`, `TIME`, `EDATE`, `EOMONTH`, `TIMEVALUE`, `WEEKNUM`, `ISOWEEKNUM`, `NETWORKDAYS`, `NETWORKDAYS.INTL`, `WORKDAY`, `WORKDAY.INTL`, `DAYS360`, `YEARFRAC`
 
-### Information (7)
-`ISBLANK`, `ISERROR`, `ISNUMBER`, `ISTEXT`, `ISLOGICAL`, `ISNA`, `TYPE`
+### Information (15)
+`ISBLANK`, `ISERROR`, `ISNUMBER`, `ISTEXT`, `ISLOGICAL`, `ISNA`, `TYPE`, `ISERR`, `ISNONTEXT`, `ISEVEN`, `ISODD`, `ISREF`, `N`, `NA`, `ERROR.TYPE`
+
+### Dynamic Array (17)
+`SEQUENCE`, `RANDARRAY`, `TOCOL`, `TOROW`, `WRAPROWS`, `WRAPCOLS`, `CHOOSEROWS`, `CHOOSECOLS`, `DROP`, `TAKE`, `EXPAND`, `HSTACK`, `VSTACK`, `FILTER`, `UNIQUE`, `SORT`, `SORTBY`
 
 ## Custom Functions
 

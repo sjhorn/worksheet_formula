@@ -1,3 +1,20 @@
+## 0.4.0
+
+- **Dynamic array functions** (17): SEQUENCE, RANDARRAY, TOCOL, TOROW, WRAPROWS, WRAPCOLS, CHOOSEROWS, CHOOSECOLS, DROP, TAKE, EXPAND, HSTACK, VSTACK, FILTER, UNIQUE, SORT, SORTBY
+- Array generators, flatten/reshape, slice/select, concatenation, and filter/sort/unique operations
+- Private shared helpers for matrix conversion, flattening, value comparison, and index resolution
+- 199 total built-in functions across 8 categories
+
+## 0.3.0
+
+- **87 new built-in functions** across all existing categories (95 → 182 total)
+- **Math & Trigonometry** (28 new): PI, LN, LOG, LOG10, EXP, SIN, COS, TAN, ASIN, ACOS, ATAN, ATAN2, DEGREES, RADIANS, EVEN, ODD, GCD, LCM, TRUNC, MROUND, QUOTIENT, COMBIN, COMBINA, FACT, FACTDOUBLE, SUMSQ, SUBTOTAL, AGGREGATE
+- **Text** (13 new): REPT, CHAR, CODE, CLEAN, DOLLAR, FIXED, T, NUMBERVALUE, UNICHAR, UNICODE, TEXTBEFORE, TEXTAFTER, TEXTSPLIT
+- **Statistical** (19 new): STDEV.S, STDEV.P, VAR.S, VAR.P, PERCENTILE.INC, PERCENTILE.EXC, PERCENTRANK.INC, PERCENTRANK.EXC, RANK.AVG, FREQUENCY, AVEDEV, AVERAGEA, MAXA, MINA, TRIMMEAN, GEOMEAN, HARMEAN, MAXIFS, MINIFS
+- **Lookup & Reference** (10 new): ROW, COLUMN, ROWS, COLUMNS, ADDRESS, INDIRECT, OFFSET, TRANSPOSE, HYPERLINK, AREAS
+- **Date/Time** (9 new): TIMEVALUE, WEEKNUM, ISOWEEKNUM, NETWORKDAYS, NETWORKDAYS.INTL, WORKDAY, WORKDAY.INTL, DAYS360, YEARFRAC
+- **Information** (8 new): ISERR, ISNONTEXT, ISEVEN, ISODD, ISREF, N, NA, ERROR.TYPE
+
 ## 0.2.0
 
 - **Statistical functions**: COUNT, COUNTA, COUNTBLANK, COUNTIF, SUMIF, AVERAGEIF with shared criteria matching

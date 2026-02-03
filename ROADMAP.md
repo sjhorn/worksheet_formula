@@ -5,17 +5,18 @@ prioritised by real-world usage frequency.
 
 ## Current State
 
-**95 functions** across 7 categories:
+**199 functions** across 8 categories:
 
 | Category | Count | Functions |
 |----------|-------|-----------|
-| Math | 19 | SUM, AVERAGE, MIN, MAX, ABS, ROUND, INT, MOD, SQRT, POWER, SUMPRODUCT, ROUNDUP, ROUNDDOWN, CEILING, FLOOR, SIGN, PRODUCT, RAND, RANDBETWEEN |
+| Math & Trig | 47 | SUM, AVERAGE, MIN, MAX, ABS, ROUND, INT, MOD, SQRT, POWER, SUMPRODUCT, ROUNDUP, ROUNDDOWN, CEILING, FLOOR, SIGN, PRODUCT, RAND, RANDBETWEEN, PI, LN, LOG, LOG10, EXP, SIN, COS, TAN, ASIN, ACOS, ATAN, ATAN2, DEGREES, RADIANS, EVEN, ODD, GCD, LCM, TRUNC, MROUND, QUOTIENT, COMBIN, COMBINA, FACT, FACTDOUBLE, SUMSQ, SUBTOTAL, AGGREGATE |
 | Logical | 11 | IF, AND, OR, NOT, IFERROR, IFNA, TRUE, FALSE, IFS, SWITCH, XOR |
-| Text | 18 | CONCAT, CONCATENATE, LEFT, RIGHT, MID, LEN, LOWER, UPPER, TRIM, TEXT, FIND, SEARCH, SUBSTITUTE, REPLACE, VALUE, TEXTJOIN, PROPER, EXACT |
-| Statistical | 16 | COUNT, COUNTA, COUNTBLANK, COUNTIF, SUMIF, AVERAGEIF, SUMIFS, COUNTIFS, AVERAGEIFS, MEDIAN, MODE.SNGL, MODE, LARGE, SMALL, RANK.EQ, RANK |
-| Lookup | 8 | VLOOKUP, INDEX, MATCH, HLOOKUP, LOOKUP, CHOOSE, XMATCH, XLOOKUP |
-| Date/Time | 16 | DATE, TODAY, NOW, YEAR, MONTH, DAY, DAYS, DATEDIF, DATEVALUE, WEEKDAY, HOUR, MINUTE, SECOND, TIME, EDATE, EOMONTH |
-| Information | 7 | ISBLANK, ISERROR, ISNUMBER, ISTEXT, ISLOGICAL, ISNA, TYPE |
+| Text | 31 | CONCAT, CONCATENATE, LEFT, RIGHT, MID, LEN, LOWER, UPPER, TRIM, TEXT, FIND, SEARCH, SUBSTITUTE, REPLACE, VALUE, TEXTJOIN, PROPER, EXACT, REPT, CHAR, CODE, CLEAN, DOLLAR, FIXED, T, NUMBERVALUE, UNICHAR, UNICODE, TEXTBEFORE, TEXTAFTER, TEXTSPLIT |
+| Statistical | 35 | COUNT, COUNTA, COUNTBLANK, COUNTIF, SUMIF, AVERAGEIF, SUMIFS, COUNTIFS, AVERAGEIFS, MEDIAN, MODE.SNGL, MODE, LARGE, SMALL, RANK.EQ, RANK, STDEV.S, STDEV.P, VAR.S, VAR.P, PERCENTILE.INC, PERCENTILE.EXC, PERCENTRANK.INC, PERCENTRANK.EXC, RANK.AVG, FREQUENCY, AVEDEV, AVERAGEA, MAXA, MINA, TRIMMEAN, GEOMEAN, HARMEAN, MAXIFS, MINIFS |
+| Lookup & Ref | 18 | VLOOKUP, INDEX, MATCH, HLOOKUP, LOOKUP, CHOOSE, XMATCH, XLOOKUP, ROW, COLUMN, ROWS, COLUMNS, ADDRESS, INDIRECT, OFFSET, TRANSPOSE, HYPERLINK, AREAS |
+| Date/Time | 25 | DATE, TODAY, NOW, YEAR, MONTH, DAY, DAYS, DATEDIF, DATEVALUE, WEEKDAY, HOUR, MINUTE, SECOND, TIME, EDATE, EOMONTH, TIMEVALUE, WEEKNUM, ISOWEEKNUM, NETWORKDAYS, NETWORKDAYS.INTL, WORKDAY, WORKDAY.INTL, DAYS360, YEARFRAC |
+| Information | 15 | ISBLANK, ISERROR, ISNUMBER, ISTEXT, ISLOGICAL, ISNA, TYPE, ISERR, ISNONTEXT, ISEVEN, ISODD, ISREF, N, NA, ERROR.TYPE |
+| Dynamic Array | 17 | SEQUENCE, RANDARRAY, TOCOL, TOROW, WRAPROWS, WRAPCOLS, CHOOSEROWS, CHOOSECOLS, DROP, TAKE, EXPAND, HSTACK, VSTACK, FILTER, UNIQUE, SORT, SORTBY |
 
 ---
 
@@ -117,10 +118,10 @@ All 52 functions implemented and tested (527 tests passing).
 
 ---
 
-## Phase 2 — Extended Essentials
+## Phase 2 — Extended Essentials ✅ Complete
 
-Broadly useful functions that round out the core categories and cover the
-"long tail" of common spreadsheet work.
+87 functions implemented and tested (768 tests passing).
+Some context-dependent functions deferred (FORMULATEXT, ISFORMULA, CELL, SHEET, SHEETS).
 
 ### Math & Trigonometry
 
@@ -244,14 +245,14 @@ Broadly useful functions that round out the core categories and cover the
 | SHEET | Sheet number |
 | SHEETS | Number of sheets |
 
-**Phase 2 total: ~93 functions → brings library to ~188 functions**
+**Phase 2 total: 87 functions implemented (6 deferred) → brought library from 95 to 182 functions**
 
 ---
 
-## Phase 3 — Dynamic Array Functions
+## Phase 3 — Dynamic Array Functions ✅ Complete
 
-Modern Excel/Google Sheets array functions. These require the engine to
-support spilling results into adjacent cells.
+All 17 functions implemented and tested (857 tests passing).
+New category file: `lib/src/functions/array.dart`.
 
 | Function | Description |
 |----------|-------------|
@@ -273,7 +274,7 @@ support spilling results into adjacent cells.
 | HSTACK | Stack arrays horizontally |
 | VSTACK | Stack arrays vertically |
 
-**Phase 3 total: ~17 functions → brings library to ~205 functions**
+**Phase 3 total: 17 functions → brought library from 182 to 199 functions**
 
 ---
 
@@ -346,7 +347,7 @@ Essential for business spreadsheets. Grouped by sub-domain.
 | RRI | Equivalent interest rate for growth |
 | ISPMT | Interest on straight-line loan |
 
-**Phase 4 total: ~44 functions → brings library to ~249 functions**
+**Phase 4 total: ~44 functions → brings library to ~243 functions**
 
 ---
 
@@ -444,7 +445,7 @@ Functions used in data analysis, quality control, and academic work.
 | VARA | Variance including text/logical |
 | VARPA | Pop variance including text/logical |
 
-**Phase 5 total: ~70 functions → brings library to ~319 functions**
+**Phase 5 total: ~70 functions → brings library to ~313 functions**
 
 ---
 
@@ -509,7 +510,7 @@ Specialized but included in both Excel and Google Sheets.
 | ARABIC | Roman numeral to number |
 | ROMAN | Number to Roman numeral |
 
-**Phase 6 total: ~54 functions → brings library to ~373 functions**
+**Phase 6 total: ~54 functions → brings library to ~367 functions**
 
 ---
 
@@ -532,7 +533,7 @@ Operate on structured data ranges with criteria ranges.
 | DVAR | Sample variance of matching rows |
 | DVARP | Population variance of matching rows |
 
-**Phase 7 total: 12 functions → brings library to ~385 functions**
+**Phase 7 total: 12 functions → brings library to ~379 functions**
 
 ---
 
@@ -552,7 +553,7 @@ Requires lambda / closure support in the formula engine.
 | BYROW | Apply lambda to each row |
 | ISOMITTED | Test if lambda argument was omitted |
 
-**Phase 8 total: 9 functions → brings library to ~394 functions**
+**Phase 8 total: 9 functions → brings library to ~388 functions**
 
 ---
 
@@ -591,7 +592,7 @@ Requires lambda / closure support in the formula engine.
 | MINVERSE | Matrix inverse |
 | MMULT | Matrix multiplication |
 
-**Phase 9 total: ~18 functions → brings library to ~412+ functions**
+**Phase 9 total: ~18 functions → brings library to ~406+ functions**
 
 ---
 
@@ -600,15 +601,15 @@ Requires lambda / closure support in the formula engine.
 | Phase | Focus | New | Running Total | Status |
 |-------|-------|-----|---------------|--------|
 | 1 | High-priority missing | 52 | 95 | Done |
-| 2 | Extended essentials | ~93 | ~188 | |
-| 3 | Dynamic arrays | ~17 | ~205 | |
-| 4 | Financial | ~44 | ~249 | |
-| 5 | Advanced statistics | ~70 | ~319 | |
-| 6 | Engineering | ~54 | ~373 | |
-| 7 | Database | 12 | ~385 | |
-| 8 | Lambda / higher-order | 9 | ~394 | |
-| 9 | Remaining & niche | ~18 | ~412+ | |
+| 2 | Extended essentials | 87 | 182 | Done |
+| 3 | Dynamic arrays | 17 | 199 | Done |
+| 4 | Financial | ~44 | ~243 | |
+| 5 | Advanced statistics | ~70 | ~313 | |
+| 6 | Engineering | ~54 | ~367 | |
+| 7 | Database | 12 | ~379 | |
+| 8 | Lambda / higher-order | 9 | ~388 | |
+| 9 | Remaining & niche | ~18 | ~406+ | |
 
-Phases 1–2 cover the functions that the vast majority of users need.
-Phases 3–4 cover the functions that power-users and business users rely on.
+Phases 1–3 are complete, covering the functions the vast majority of users need plus dynamic array support.
+Phase 4 covers the functions that business/finance users rely on.
 Phases 5–9 provide specialist and completeness coverage.
