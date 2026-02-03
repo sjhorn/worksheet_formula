@@ -188,3 +188,46 @@ class EmptyValue extends FormulaValue {
   @override
   String toString() => 'EmptyValue()';
 }
+
+/// A callable function value (returned by LAMBDA, used by MAP/REDUCE/etc.).
+class FunctionValue extends FormulaValue {
+  final List<String> paramNames;
+  final FormulaValue Function(List<FormulaValue> args) invoke;
+
+  const FunctionValue(this.paramNames, this.invoke);
+
+  @override
+  num? toNumber() => null;
+
+  @override
+  String toText() => '#LAMBDA';
+
+  @override
+  bool toBool() => false;
+
+  @override
+  bool get isTruthy => false;
+
+  @override
+  String toString() => 'FunctionValue(${paramNames.join(', ')})';
+}
+
+/// Sentinel value for omitted lambda parameters (checked by ISOMITTED).
+class OmittedValue extends FormulaValue {
+  const OmittedValue();
+
+  @override
+  num? toNumber() => 0;
+
+  @override
+  String toText() => '';
+
+  @override
+  bool toBool() => false;
+
+  @override
+  bool get isTruthy => false;
+
+  @override
+  String toString() => 'OmittedValue()';
+}

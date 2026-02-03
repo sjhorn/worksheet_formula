@@ -52,6 +52,9 @@ class MockContext implements EvaluationContext {
       functions[name.toUpperCase()];
 
   @override
+  FormulaValue? getVariable(String name) => null;
+
+  @override
   bool get isCancelled => false;
 }
 
@@ -338,6 +341,32 @@ void main() {
     });
   });
 
+  group('NameNode', () {
+    test('evaluates to #NAME? without variable scope', () {
+      const node = NameNode('x');
+      expect(node.evaluate(context), const ErrorValue(FormulaError.name));
+    });
+
+    test('has no cell references', () {
+      const node = NameNode('count');
+      expect(node.cellReferences, isEmpty);
+    });
+
+    test('toFormulaString returns the name', () {
+      const node = NameNode('myVar');
+      expect(node.toFormulaString(), 'myVar');
+    });
+
+    test('equality', () {
+      expect(const NameNode('x'), const NameNode('x'));
+      expect(const NameNode('x'), isNot(const NameNode('y')));
+    });
+
+    test('hashCode is consistent with equality', () {
+      expect(const NameNode('x').hashCode, const NameNode('x').hashCode);
+    });
+  });
+
   group('FormulaNode sealed class', () {
     test('pattern matching works on all subtypes', () {
       final nodes = <FormulaNode>[
@@ -351,6 +380,7 @@ void main() {
         const UnaryOpNode(UnaryOperator.negate, NumberNode(1)),
         const FunctionCallNode('SUM', [NumberNode(1)]),
         const ParenthesizedNode(NumberNode(1)),
+        const NameNode('x'),
       ];
 
       final types = nodes.map((n) => switch (n) {
@@ -364,11 +394,12 @@ void main() {
         UnaryOpNode() => 'unaryOp',
         FunctionCallNode() => 'functionCall',
         ParenthesizedNode() => 'parenthesized',
+        NameNode() => 'name',
       }).toList();
 
       expect(types, [
         'number', 'text', 'boolean', 'error', 'cellRef', 'rangeRef',
-        'binaryOp', 'unaryOp', 'functionCall', 'parenthesized',
+        'binaryOp', 'unaryOp', 'functionCall', 'parenthesized', 'name',
       ]);
     });
   });

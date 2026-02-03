@@ -21,6 +21,8 @@ class _TestContext implements EvaluationContext {
   @override
   String? get currentSheet => null;
   @override
+  FormulaValue? getVariable(String name) => null;
+  @override
   bool get isCancelled => false;
 
   @override

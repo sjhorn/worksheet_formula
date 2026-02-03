@@ -331,6 +331,73 @@ void main() {
     });
   });
 
+  group('bare identifiers', () {
+    test('single letter x parses as NameNode', () {
+      final node = parser.parse('x');
+      expect(node, isA<NameNode>());
+      expect((node as NameNode).name, 'x');
+    });
+
+    test('multi-letter count parses as NameNode', () {
+      final node = parser.parse('count');
+      expect(node, isA<NameNode>());
+      expect((node as NameNode).name, 'count');
+    });
+
+    test('underscore my_var parses as NameNode', () {
+      final node = parser.parse('my_var');
+      expect(node, isA<NameNode>());
+      expect((node as NameNode).name, 'my_var');
+    });
+
+    test('cell ref A1 still parses as CellRefNode', () {
+      final node = parser.parse('A1');
+      expect(node, isA<CellRefNode>());
+    });
+
+    test('cell ref AA100 still parses as CellRefNode', () {
+      final node = parser.parse('AA100');
+      expect(node, isA<CellRefNode>());
+    });
+
+    test('TRUE still parses as BooleanNode', () {
+      final node = parser.parse('TRUE');
+      expect(node, isA<BooleanNode>());
+    });
+
+    test('FALSE still parses as BooleanNode', () {
+      final node = parser.parse('FALSE');
+      expect(node, isA<BooleanNode>());
+    });
+
+    test('true (lowercase) still parses as BooleanNode', () {
+      final node = parser.parse('true');
+      expect(node, isA<BooleanNode>());
+    });
+
+    test('SUM(1) still parses as FunctionCallNode', () {
+      final node = parser.parse('SUM(1)');
+      expect(node, isA<FunctionCallNode>());
+    });
+
+    test('identifier in expression x+1', () {
+      final node = parser.parse('x+1');
+      expect(node, isA<BinaryOpNode>());
+      final op = node as BinaryOpNode;
+      expect(op.left, isA<NameNode>());
+      expect(op.operator, BinaryOperator.add);
+    });
+
+    test('LAMBDA(x, x+1) parses with NameNode args', () {
+      final node = parser.parse('LAMBDA(x, x+1)');
+      expect(node, isA<FunctionCallNode>());
+      final fn = node as FunctionCallNode;
+      expect(fn.name, 'LAMBDA');
+      expect(fn.arguments[0], isA<NameNode>());
+      expect(fn.arguments[1], isA<BinaryOpNode>());
+    });
+  });
+
   group('complex expressions', () {
     test('=SUM(A1:A10)*2+1', () {
       final node = parser.parse('=SUM(A1:A10)*2+1');
@@ -400,7 +467,11 @@ void main() {
       } on FormulaParseException catch (e) {
         expect(
           e.message.toLowerCase(),
-          anyOf(contains('unexpected end'), contains('end of')),
+          anyOf(
+            contains('unexpected end'),
+            contains('end of'),
+            contains('unexpected character'),
+          ),
         );
       }
     });

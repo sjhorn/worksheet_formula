@@ -1214,6 +1214,8 @@ class _ErrorFilteringContext implements EvaluationContext {
   @override
   String? get currentSheet => _inner.currentSheet;
   @override
+  FormulaValue? getVariable(String name) => _inner.getVariable(name);
+  @override
   bool get isCancelled => _inner.isCancelled;
   @override
   FormulaFunction? getFunction(String name) => _inner.getFunction(name);

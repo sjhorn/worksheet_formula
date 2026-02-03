@@ -277,3 +277,29 @@ class ParenthesizedNode extends FormulaNode {
   @override
   String toFormulaString() => '(${inner.toFormulaString()})';
 }
+
+/// Bare name identifier: x, count, my_var (used in LAMBDA parameters).
+class NameNode extends FormulaNode {
+  final String name;
+  const NameNode(this.name);
+
+  @override
+  FormulaValue evaluate(EvaluationContext context) {
+    final value = context.getVariable(name);
+    if (value != null) return value;
+    return const FormulaValue.error(FormulaError.name);
+  }
+
+  @override
+  Iterable<A1> get cellReferences => const [];
+
+  @override
+  String toFormulaString() => name;
+
+  @override
+  bool operator ==(Object other) =>
+      other is NameNode && other.name == name;
+
+  @override
+  int get hashCode => name.hashCode;
+}

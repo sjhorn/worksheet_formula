@@ -173,8 +173,18 @@ class FormulaParser {
             .map((values) =>
                 ParenthesizedNode(values[1] as FormulaNode) as FormulaNode);
 
+    // Bare identifier: x, count, my_var (for LAMBDA parameters).
+    // Must NOT match TRUE/FALSE, cell refs (letter+digit like A1), or
+    // function calls (already matched earlier via functionCall).
+    final bareIdentifier =
+        (letter() & (letter() | char('_')).star()).flatten().trim().where((s) {
+      final upper = s.toUpperCase();
+      if (upper == 'TRUE' || upper == 'FALSE') return false;
+      return true;
+    }).map((name) => NameNode(name) as FormulaNode);
+
     // --- Primary (order matters: try function before cell ref,
-    //     range before cell ref) ---
+    //     range before cell ref, bare identifier last) ---
     final primary = (parenthesized |
             functionCall |
             rangeReference |
@@ -182,7 +192,8 @@ class FormulaParser {
             number |
             text |
             boolean |
-            errorLiteral)
+            errorLiteral |
+            bareIdentifier)
         .cast<FormulaNode>();
 
     // --- Expression with operator precedence ---

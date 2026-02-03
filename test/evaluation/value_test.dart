@@ -306,15 +306,80 @@ void main() {
     });
   });
 
+  group('FunctionValue', () {
+    test('toNumber returns null', () {
+      final fv = FunctionValue(['x'], (args) => const NumberValue(0));
+      expect(fv.toNumber(), null);
+    });
+
+    test('toText returns #LAMBDA', () {
+      final fv = FunctionValue(['x'], (args) => const NumberValue(0));
+      expect(fv.toText(), '#LAMBDA');
+    });
+
+    test('toBool returns false', () {
+      final fv = FunctionValue(['x'], (args) => const NumberValue(0));
+      expect(fv.toBool(), false);
+    });
+
+    test('isTruthy is false', () {
+      final fv = FunctionValue(['x'], (args) => const NumberValue(0));
+      expect(fv.isTruthy, false);
+    });
+
+    test('isError is false', () {
+      final fv = FunctionValue(['x'], (args) => const NumberValue(0));
+      expect(fv.isError, false);
+    });
+
+    test('toString', () {
+      final fv = FunctionValue(['x', 'y'], (args) => const NumberValue(0));
+      expect(fv.toString(), 'FunctionValue(x, y)');
+    });
+
+    test('invoke calls the function', () {
+      final fv = FunctionValue(['x'], (args) => FormulaValue.number(args[0].toNumber()! * 2));
+      expect(fv.invoke([const NumberValue(5)]), const NumberValue(10));
+    });
+  });
+
+  group('OmittedValue', () {
+    test('toNumber returns 0', () {
+      expect(const OmittedValue().toNumber(), 0);
+    });
+
+    test('toText returns empty string', () {
+      expect(const OmittedValue().toText(), '');
+    });
+
+    test('toBool returns false', () {
+      expect(const OmittedValue().toBool(), false);
+    });
+
+    test('isTruthy is false', () {
+      expect(const OmittedValue().isTruthy, false);
+    });
+
+    test('isError is false', () {
+      expect(const OmittedValue().isError, false);
+    });
+
+    test('toString', () {
+      expect(const OmittedValue().toString(), 'OmittedValue()');
+    });
+  });
+
   group('FormulaValue sealed class', () {
     test('pattern matching works on all subtypes', () {
-      const values = <FormulaValue>[
-        NumberValue(1),
-        TextValue('hi'),
-        BooleanValue(true),
-        ErrorValue(FormulaError.na),
-        EmptyValue(),
-        RangeValue([]),
+      final values = <FormulaValue>[
+        const NumberValue(1),
+        const TextValue('hi'),
+        const BooleanValue(true),
+        const ErrorValue(FormulaError.na),
+        const EmptyValue(),
+        const RangeValue([]),
+        FunctionValue([], (args) => const NumberValue(0)),
+        const OmittedValue(),
       ];
 
       final types = values.map((v) => switch (v) {
@@ -324,9 +389,14 @@ void main() {
         ErrorValue() => 'error',
         EmptyValue() => 'empty',
         RangeValue() => 'range',
+        FunctionValue() => 'function',
+        OmittedValue() => 'omitted',
       }).toList();
 
-      expect(types, ['number', 'text', 'boolean', 'error', 'empty', 'range']);
+      expect(types, [
+        'number', 'text', 'boolean', 'error', 'empty', 'range',
+        'function', 'omitted',
+      ]);
     });
   });
 }

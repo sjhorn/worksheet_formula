@@ -5,7 +5,7 @@ prioritised by real-world usage frequency.
 
 ## Current State
 
-**375 functions** across 12 categories:
+**384 functions** across 13 categories:
 
 | Category | Count | Functions |
 |----------|-------|-----------|
@@ -21,6 +21,7 @@ prioritised by real-world usage frequency.
 | Adv. Statistical | 70 | FISHER, FISHERINV, STANDARDIZE, PERMUT, PERMUTATIONA, DEVSQ, KURT, SKEW, SKEW.P, COVARIANCE.P, COVARIANCE.S, CORREL, PEARSON, RSQ, SLOPE, INTERCEPT, STEYX, FORECAST.LINEAR, PROB, MODE.MULT, STDEVA, STDEVPA, VARA, VARPA, GAMMA, GAMMALN, GAMMALN.PRECISE, GAUSS, PHI, NORM.S.DIST, NORM.S.INV, NORM.DIST, NORM.INV, BINOM.DIST, BINOM.INV, BINOM.DIST.RANGE, NEGBINOM.DIST, HYPGEOM.DIST, POISSON.DIST, EXPON.DIST, GAMMA.DIST, GAMMA.INV, BETA.DIST, BETA.INV, CHISQ.DIST, CHISQ.INV, CHISQ.DIST.RT, CHISQ.INV.RT, T.DIST, T.INV, T.DIST.2T, T.INV.2T, T.DIST.RT, F.DIST, F.INV, F.DIST.RT, F.INV.RT, WEIBULL.DIST, LOGNORM.DIST, LOGNORM.INV, CONFIDENCE.NORM, CONFIDENCE.T, Z.TEST, T.TEST, CHISQ.TEST, F.TEST, LINEST, LOGEST, TREND, GROWTH |
 | Engineering | 54 | DELTA, GESTEP, BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT, BIN2DEC, BIN2HEX, BIN2OCT, DEC2BIN, DEC2HEX, DEC2OCT, HEX2BIN, HEX2DEC, HEX2OCT, OCT2BIN, OCT2DEC, OCT2HEX, BASE, DECIMAL, ARABIC, ROMAN, ERF, ERF.PRECISE, ERFC, ERFC.PRECISE, COMPLEX, IMREAL, IMAGINARY, IMABS, IMARGUMENT, IMCONJUGATE, IMSUM, IMSUB, IMPRODUCT, IMDIV, IMPOWER, IMSQRT, IMEXP, IMLN, IMLOG10, IMLOG2, IMSIN, IMCOS, IMTAN, IMSINH, IMCOSH, IMSEC, IMSECH, IMCSC, IMCSCH, IMCOT, CONVERT |
 | Database | 12 | DSUM, DAVERAGE, DCOUNT, DCOUNTA, DMAX, DMIN, DGET, DPRODUCT, DSTDEV, DSTDEVP, DVAR, DVARP |
+| Lambda & Higher-Order | 9 | LAMBDA, LET, MAP, REDUCE, SCAN, MAKEARRAY, BYCOL, BYROW, ISOMITTED |
 
 ---
 
@@ -567,23 +568,26 @@ New category file: `lib/src/functions/database.dart`.
 
 ---
 
-## Phase 8 — Lambda & Higher-Order Functions
+## Phase 8 — Lambda & Higher-Order Functions ✅ Complete
 
-Requires lambda / closure support in the formula engine.
+All 9 functions implemented and tested (1545 tests passing).
+New category file: `lib/src/functions/lambda.dart`.
+Structural changes: added `NameNode` to AST, `FunctionValue`/`OmittedValue` to values,
+`getVariable()` to `EvaluationContext`, and bare identifier parsing to the parser.
 
 | Function | Description |
 |----------|-------------|
-| LAMBDA | Create a custom function |
+| LAMBDA | Create a custom function (returns FunctionValue closure) |
 | LET | Define named variables in a formula |
 | MAP | Apply a lambda to each element |
 | REDUCE | Reduce an array to a single value |
 | SCAN | Running accumulation |
-| MAKEARRAY | Build array from lambda |
+| MAKEARRAY | Build array from lambda (1-based indices) |
 | BYCOL | Apply lambda to each column |
 | BYROW | Apply lambda to each row |
 | ISOMITTED | Test if lambda argument was omitted |
 
-**Phase 8 total: 9 functions → brings library to 384 functions**
+**Phase 8 total: 9 functions → brought library from 375 to 384 functions**
 
 ---
 
@@ -637,8 +641,8 @@ Requires lambda / closure support in the formula engine.
 | 5 | Advanced statistics | 70 | 309 | Done |
 | 6 | Engineering | 54 | 363 | Done |
 | 7 | Database | 12 | 375 | Done |
-| 8 | Lambda / higher-order | 9 | 384 | |
+| 8 | Lambda / higher-order | 9 | 384 | Done |
 | 9 | Remaining & niche | ~18 | ~402+ | |
 
-Phases 1–7 are complete, covering the functions the vast majority of users need plus dynamic array support, financial functions, advanced statistical/probability distributions, engineering functions, and database functions.
-Phases 8–9 provide specialist and completeness coverage.
+Phases 1–8 are complete, covering the functions the vast majority of users need plus dynamic array support, financial functions, advanced statistical/probability distributions, engineering functions, database functions, and lambda/higher-order functions.
+Phase 9 provides remaining niche and completeness coverage.

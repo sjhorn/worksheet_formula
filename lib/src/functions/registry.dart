@@ -5,6 +5,7 @@ import 'engineering.dart';
 import 'financial.dart';
 import 'function.dart';
 import 'information.dart';
+import 'lambda.dart';
 import 'logical.dart';
 import 'lookup.dart';
 import 'math.dart';
@@ -31,6 +32,7 @@ class FunctionRegistry {
       registerAdvancedStatisticalFunctions(this);
       registerEngineeringFunctions(this);
       registerDatabaseFunctions(this);
+      registerLambdaFunctions(this);
     }
   }
 

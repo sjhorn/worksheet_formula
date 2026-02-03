@@ -145,6 +145,8 @@ class TypeFunction extends FormulaFunction {
       ErrorValue() => const FormulaValue.number(16),
       RangeValue() => const FormulaValue.number(64),
       EmptyValue() => const FormulaValue.number(1), // Empty treated as number (0)
+      FunctionValue() => const FormulaValue.number(128), // Lambda function
+      OmittedValue() => const FormulaValue.number(1), // Omitted treated as number (0)
     };
   }
 }

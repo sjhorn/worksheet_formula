@@ -23,6 +23,11 @@ abstract class EvaluationContext {
   /// The current sheet name (for cross-sheet references).
   String? get currentSheet;
 
+  /// Get a variable value by name (for LAMBDA parameter scoping).
+  ///
+  /// Returns null if the variable is not defined in this scope.
+  FormulaValue? getVariable(String name) => null;
+
   /// Optional: Check if evaluation should be cancelled (for long-running calcs).
   bool get isCancelled => false;
 }

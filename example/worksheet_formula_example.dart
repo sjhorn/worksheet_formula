@@ -23,6 +23,9 @@ class MapEvaluationContext implements EvaluationContext {
   String? get currentSheet => null;
 
   @override
+  FormulaValue? getVariable(String name) => null;
+
+  @override
   bool get isCancelled => false;
 
   @override
