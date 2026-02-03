@@ -75,7 +75,8 @@ worksheet_formula/
 │   │   │   ├── date.dart               # DATE, NOW, NETWORKDAYS, etc. (25)
 │   │   │   ├── statistical.dart        # COUNT, STDEV, PERCENTILE, etc. (35)
 │   │   │   ├── information.dart        # ISBLANK, ISERROR, TYPE, N, NA, etc. (15)
-│   │   │   └── array.dart              # FILTER, SORT, UNIQUE, SEQUENCE, etc. (17)
+│   │   │   ├── array.dart              # FILTER, SORT, UNIQUE, SEQUENCE, etc. (17)
+│   │   │   └── financial.dart          # PMT, FV, NPV, IRR, PRICE, YIELD, etc. (40)
 │   │   └── dependencies/
 │   │       └── graph.dart              # Dependency tracking
 ├── pubspec.yaml
@@ -911,14 +912,15 @@ abstract class FormulaFunction {
 // lib/src/functions/registry.dart
 
 import 'array.dart';
+import 'date.dart';
+import 'financial.dart';
 import 'function.dart';
 import 'information.dart';
-import 'math.dart';
-import 'text.dart';
 import 'logical.dart';
 import 'lookup.dart';
-import 'date.dart';
+import 'math.dart';
 import 'statistical.dart';
+import 'text.dart';
 
 /// Registry of available formula functions
 class FunctionRegistry {
@@ -935,6 +937,7 @@ class FunctionRegistry {
       registerDateFunctions(this);
       registerInformationFunctions(this);
       registerArrayFunctions(this);
+      registerFinancialFunctions(this);
     }
   }
   
@@ -2237,7 +2240,7 @@ class FormulaEngine {
 /// 
 /// This package provides:
 /// - Excel/Google Sheets compatible formula parsing
-/// - An extensible function registry with 199 built-in functions
+/// - An extensible function registry with 239 built-in functions
 /// - Dependency tracking for efficient recalculation
 /// - Type-safe formula values and error handling
 /// 

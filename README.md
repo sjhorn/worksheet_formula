@@ -5,7 +5,7 @@ A standalone formula engine for spreadsheet-like calculations in Dart.
 ## Features
 
 - Excel/Google Sheets compatible formula parsing
-- 199 built-in functions across 8 categories (math, logical, text, statistical, lookup, date, information, array)
+- 239 built-in functions across 9 categories (math, logical, text, statistical, lookup, date, information, array, financial)
 - Dynamic array functions (FILTER, SORT, UNIQUE, SEQUENCE, etc.)
 - Type-safe formula values with Excel-compatible error handling
 - Cell dependency tracking for efficient recalculation
@@ -100,6 +100,9 @@ final result = engine.evaluateString('=SUM(A1:A2)', context);
 
 ### Dynamic Array (17)
 `SEQUENCE`, `RANDARRAY`, `TOCOL`, `TOROW`, `WRAPROWS`, `WRAPCOLS`, `CHOOSEROWS`, `CHOOSECOLS`, `DROP`, `TAKE`, `EXPAND`, `HSTACK`, `VSTACK`, `FILTER`, `UNIQUE`, `SORT`, `SORTBY`
+
+### Financial (40)
+`PMT`, `FV`, `PV`, `NPER`, `RATE`, `IPMT`, `PPMT`, `CUMIPMT`, `CUMPRINC`, `NPV`, `XNPV`, `IRR`, `XIRR`, `MIRR`, `FVSCHEDULE`, `SLN`, `SYD`, `DB`, `DDB`, `VDB`, `PRICE`, `YIELD`, `DURATION`, `MDURATION`, `ACCRINT`, `DISC`, `INTRATE`, `RECEIVED`, `PRICEDISC`, `PRICEMAT`, `TBILLEQ`, `TBILLPRICE`, `TBILLYIELD`, `DOLLARDE`, `DOLLARFR`, `EFFECT`, `NOMINAL`, `PDURATION`, `RRI`, `ISPMT`
 
 ## Custom Functions
 

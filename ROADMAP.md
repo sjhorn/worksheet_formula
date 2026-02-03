@@ -5,7 +5,7 @@ prioritised by real-world usage frequency.
 
 ## Current State
 
-**199 functions** across 8 categories:
+**239 functions** across 9 categories:
 
 | Category | Count | Functions |
 |----------|-------|-----------|
@@ -17,6 +17,7 @@ prioritised by real-world usage frequency.
 | Date/Time | 25 | DATE, TODAY, NOW, YEAR, MONTH, DAY, DAYS, DATEDIF, DATEVALUE, WEEKDAY, HOUR, MINUTE, SECOND, TIME, EDATE, EOMONTH, TIMEVALUE, WEEKNUM, ISOWEEKNUM, NETWORKDAYS, NETWORKDAYS.INTL, WORKDAY, WORKDAY.INTL, DAYS360, YEARFRAC |
 | Information | 15 | ISBLANK, ISERROR, ISNUMBER, ISTEXT, ISLOGICAL, ISNA, TYPE, ISERR, ISNONTEXT, ISEVEN, ISODD, ISREF, N, NA, ERROR.TYPE |
 | Dynamic Array | 17 | SEQUENCE, RANDARRAY, TOCOL, TOROW, WRAPROWS, WRAPCOLS, CHOOSEROWS, CHOOSECOLS, DROP, TAKE, EXPAND, HSTACK, VSTACK, FILTER, UNIQUE, SORT, SORTBY |
+| Financial | 40 | PMT, FV, PV, NPER, RATE, IPMT, PPMT, CUMIPMT, CUMPRINC, NPV, XNPV, IRR, XIRR, MIRR, FVSCHEDULE, SLN, SYD, DB, DDB, VDB, PRICE, YIELD, DURATION, MDURATION, ACCRINT, DISC, INTRATE, RECEIVED, PRICEDISC, PRICEMAT, TBILLEQ, TBILLPRICE, TBILLYIELD, DOLLARDE, DOLLARFR, EFFECT, NOMINAL, PDURATION, RRI, ISPMT |
 
 ---
 
@@ -278,9 +279,10 @@ New category file: `lib/src/functions/array.dart`.
 
 ---
 
-## Phase 4 — Financial Functions
+## Phase 4 — Financial Functions ✅ Complete
 
-Essential for business spreadsheets. Grouped by sub-domain.
+All 40 functions implemented and tested (960 tests passing).
+New category file: `lib/src/functions/financial.dart`.
 
 ### Loans & Annuities
 
@@ -347,7 +349,7 @@ Essential for business spreadsheets. Grouped by sub-domain.
 | RRI | Equivalent interest rate for growth |
 | ISPMT | Interest on straight-line loan |
 
-**Phase 4 total: ~44 functions → brings library to ~243 functions**
+**Phase 4 total: 40 functions → brought library from 199 to 239 functions**
 
 ---
 
@@ -603,13 +605,12 @@ Requires lambda / closure support in the formula engine.
 | 1 | High-priority missing | 52 | 95 | Done |
 | 2 | Extended essentials | 87 | 182 | Done |
 | 3 | Dynamic arrays | 17 | 199 | Done |
-| 4 | Financial | ~44 | ~243 | |
-| 5 | Advanced statistics | ~70 | ~313 | |
-| 6 | Engineering | ~54 | ~367 | |
-| 7 | Database | 12 | ~379 | |
-| 8 | Lambda / higher-order | 9 | ~388 | |
-| 9 | Remaining & niche | ~18 | ~406+ | |
+| 4 | Financial | 40 | 239 | Done |
+| 5 | Advanced statistics | ~70 | ~309 | |
+| 6 | Engineering | ~54 | ~363 | |
+| 7 | Database | 12 | ~375 | |
+| 8 | Lambda / higher-order | 9 | ~384 | |
+| 9 | Remaining & niche | ~18 | ~402+ | |
 
-Phases 1–3 are complete, covering the functions the vast majority of users need plus dynamic array support.
-Phase 4 covers the functions that business/finance users rely on.
+Phases 1–4 are complete, covering the functions the vast majority of users need plus dynamic array support and financial functions.
 Phases 5–9 provide specialist and completeness coverage.
