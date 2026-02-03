@@ -5,7 +5,7 @@ prioritised by real-world usage frequency.
 
 ## Current State
 
-**309 functions** across 10 categories:
+**375 functions** across 12 categories:
 
 | Category | Count | Functions |
 |----------|-------|-----------|
@@ -19,6 +19,8 @@ prioritised by real-world usage frequency.
 | Dynamic Array | 17 | SEQUENCE, RANDARRAY, TOCOL, TOROW, WRAPROWS, WRAPCOLS, CHOOSEROWS, CHOOSECOLS, DROP, TAKE, EXPAND, HSTACK, VSTACK, FILTER, UNIQUE, SORT, SORTBY |
 | Financial | 40 | PMT, FV, PV, NPER, RATE, IPMT, PPMT, CUMIPMT, CUMPRINC, NPV, XNPV, IRR, XIRR, MIRR, FVSCHEDULE, SLN, SYD, DB, DDB, VDB, PRICE, YIELD, DURATION, MDURATION, ACCRINT, DISC, INTRATE, RECEIVED, PRICEDISC, PRICEMAT, TBILLEQ, TBILLPRICE, TBILLYIELD, DOLLARDE, DOLLARFR, EFFECT, NOMINAL, PDURATION, RRI, ISPMT |
 | Adv. Statistical | 70 | FISHER, FISHERINV, STANDARDIZE, PERMUT, PERMUTATIONA, DEVSQ, KURT, SKEW, SKEW.P, COVARIANCE.P, COVARIANCE.S, CORREL, PEARSON, RSQ, SLOPE, INTERCEPT, STEYX, FORECAST.LINEAR, PROB, MODE.MULT, STDEVA, STDEVPA, VARA, VARPA, GAMMA, GAMMALN, GAMMALN.PRECISE, GAUSS, PHI, NORM.S.DIST, NORM.S.INV, NORM.DIST, NORM.INV, BINOM.DIST, BINOM.INV, BINOM.DIST.RANGE, NEGBINOM.DIST, HYPGEOM.DIST, POISSON.DIST, EXPON.DIST, GAMMA.DIST, GAMMA.INV, BETA.DIST, BETA.INV, CHISQ.DIST, CHISQ.INV, CHISQ.DIST.RT, CHISQ.INV.RT, T.DIST, T.INV, T.DIST.2T, T.INV.2T, T.DIST.RT, F.DIST, F.INV, F.DIST.RT, F.INV.RT, WEIBULL.DIST, LOGNORM.DIST, LOGNORM.INV, CONFIDENCE.NORM, CONFIDENCE.T, Z.TEST, T.TEST, CHISQ.TEST, F.TEST, LINEST, LOGEST, TREND, GROWTH |
+| Engineering | 54 | DELTA, GESTEP, BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT, BIN2DEC, BIN2HEX, BIN2OCT, DEC2BIN, DEC2HEX, DEC2OCT, HEX2BIN, HEX2DEC, HEX2OCT, OCT2BIN, OCT2DEC, OCT2HEX, BASE, DECIMAL, ARABIC, ROMAN, ERF, ERF.PRECISE, ERFC, ERFC.PRECISE, COMPLEX, IMREAL, IMAGINARY, IMABS, IMARGUMENT, IMCONJUGATE, IMSUM, IMSUB, IMPRODUCT, IMDIV, IMPOWER, IMSQRT, IMEXP, IMLN, IMLOG10, IMLOG2, IMSIN, IMCOS, IMTAN, IMSINH, IMCOSH, IMSEC, IMSECH, IMCSC, IMCSCH, IMCOT, CONVERT |
+| Database | 12 | DSUM, DAVERAGE, DCOUNT, DCOUNTA, DMAX, DMIN, DGET, DPRODUCT, DSTDEV, DSTDEVP, DVAR, DVARP |
 
 ---
 
@@ -453,9 +455,24 @@ New category file: `lib/src/functions/statistical_advanced.dart`.
 
 ---
 
-## Phase 6 — Engineering Functions
+## Phase 6 — Engineering Functions ✅ Complete
 
-Specialized but included in both Excel and Google Sheets.
+All 54 functions implemented and tested (1365 tests passing).
+New category file: `lib/src/functions/engineering.dart`.
+
+### Comparison & Bitwise
+
+| Function | Description |
+|----------|-------------|
+| DELTA | Tests whether two values are equal |
+| GESTEP | Tests whether a number >= step |
+| BITAND | Bitwise AND |
+| BITOR | Bitwise OR |
+| BITXOR | Bitwise XOR |
+| BITLSHIFT | Bitwise left shift |
+| BITRSHIFT | Bitwise right shift |
+
+### Base Conversion
 
 | Function | Description |
 |----------|-------------|
@@ -471,14 +488,24 @@ Specialized but included in both Excel and Google Sheets.
 | OCT2BIN | Octal to binary |
 | OCT2DEC | Octal to decimal |
 | OCT2HEX | Octal to hexadecimal |
-| CONVERT | Unit conversion |
-| DELTA | Tests whether two values are equal |
-| GESTEP | Tests whether a number >= step |
-| BITAND | Bitwise AND |
-| BITOR | Bitwise OR |
-| BITXOR | Bitwise XOR |
-| BITLSHIFT | Bitwise left shift |
-| BITRSHIFT | Bitwise right shift |
+
+### Number Format & Error Functions
+
+| Function | Description |
+|----------|-------------|
+| BASE | Convert number to text in given base |
+| DECIMAL | Convert text in given base to number |
+| ARABIC | Roman numeral to number |
+| ROMAN | Number to Roman numeral |
+| ERF | Error function |
+| ERF.PRECISE | Precise error function |
+| ERFC | Complementary error function |
+| ERFC.PRECISE | Precise complementary error function |
+
+### Complex Numbers
+
+| Function | Description |
+|----------|-------------|
 | COMPLEX | Create complex number |
 | IMREAL | Real part of complex number |
 | IMAGINARY | Imaginary part |
@@ -505,22 +532,21 @@ Specialized but included in both Excel and Google Sheets.
 | IMCSC | Complex cosecant |
 | IMCSCH | Complex hyperbolic cosecant |
 | IMCOT | Complex cotangent |
-| ERF | Error function |
-| ERF.PRECISE | Precise error function |
-| ERFC | Complementary error function |
-| ERFC.PRECISE | Precise complementary error function |
-| BASE | Convert number to text in given base |
-| DECIMAL | Convert text in given base to number |
-| ARABIC | Roman numeral to number |
-| ROMAN | Number to Roman numeral |
 
-**Phase 6 total: ~54 functions → brings library to ~367 functions**
+### Unit Conversion
+
+| Function | Description |
+|----------|-------------|
+| CONVERT | Unit conversion (13 categories, ~100 units, metric + binary prefixes) |
+
+**Phase 6 total: 54 functions → brought library from 309 to 363 functions**
 
 ---
 
-## Phase 7 — Database Functions
+## Phase 7 — Database Functions ✅ Complete
 
-Operate on structured data ranges with criteria ranges.
+All 12 functions implemented and tested (1447 tests passing).
+New category file: `lib/src/functions/database.dart`.
 
 | Function | Description |
 |----------|-------------|
@@ -537,7 +563,7 @@ Operate on structured data ranges with criteria ranges.
 | DVAR | Sample variance of matching rows |
 | DVARP | Population variance of matching rows |
 
-**Phase 7 total: 12 functions → brings library to ~379 functions**
+**Phase 7 total: 12 functions → brought library from 363 to 375 functions**
 
 ---
 
@@ -557,7 +583,7 @@ Requires lambda / closure support in the formula engine.
 | BYROW | Apply lambda to each row |
 | ISOMITTED | Test if lambda argument was omitted |
 
-**Phase 8 total: 9 functions → brings library to ~388 functions**
+**Phase 8 total: 9 functions → brings library to 384 functions**
 
 ---
 
@@ -596,7 +622,7 @@ Requires lambda / closure support in the formula engine.
 | MINVERSE | Matrix inverse |
 | MMULT | Matrix multiplication |
 
-**Phase 9 total: ~18 functions → brings library to ~406+ functions**
+**Phase 9 total: ~18 functions → brings library to ~402+ functions**
 
 ---
 
@@ -609,10 +635,10 @@ Requires lambda / closure support in the formula engine.
 | 3 | Dynamic arrays | 17 | 199 | Done |
 | 4 | Financial | 40 | 239 | Done |
 | 5 | Advanced statistics | 70 | 309 | Done |
-| 6 | Engineering | ~54 | ~363 | |
-| 7 | Database | 12 | ~375 | |
-| 8 | Lambda / higher-order | 9 | ~384 | |
+| 6 | Engineering | 54 | 363 | Done |
+| 7 | Database | 12 | 375 | Done |
+| 8 | Lambda / higher-order | 9 | 384 | |
 | 9 | Remaining & niche | ~18 | ~402+ | |
 
-Phases 1–5 are complete, covering the functions the vast majority of users need plus dynamic array support, financial functions, and advanced statistical/probability distributions.
-Phases 6–9 provide specialist and completeness coverage.
+Phases 1–7 are complete, covering the functions the vast majority of users need plus dynamic array support, financial functions, advanced statistical/probability distributions, engineering functions, and database functions.
+Phases 8–9 provide specialist and completeness coverage.

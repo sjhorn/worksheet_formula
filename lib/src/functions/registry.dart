@@ -1,4 +1,5 @@
 import 'array.dart';
+import 'database.dart';
 import 'date.dart';
 import 'engineering.dart';
 import 'financial.dart';
@@ -29,6 +30,7 @@ class FunctionRegistry {
       registerFinancialFunctions(this);
       registerAdvancedStatisticalFunctions(this);
       registerEngineeringFunctions(this);
+      registerDatabaseFunctions(this);
     }
   }
 
