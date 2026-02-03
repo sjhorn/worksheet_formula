@@ -59,6 +59,9 @@ void registerMathFunctions(FunctionRegistry registry) {
     SumSqFunction(),
     SubtotalFunction(),
     AggregateFunction(),
+    SeriesSumFunction(),
+    SqrtPiFunction(),
+    MultinomialFunction(),
   ]);
 }
 
@@ -1236,5 +1239,96 @@ class _ErrorFilteringContext implements EvaluationContext {
           .toList());
     }
     return value.isError ? const EmptyValue() : value;
+  }
+}
+
+/// SERIESSUM(x, n, m, coefficients) - Power series: Σ aᵢ · x^(n + i·m).
+class SeriesSumFunction extends FormulaFunction {
+  @override
+  String get name => 'SERIESSUM';
+  @override
+  int get minArgs => 4;
+  @override
+  int get maxArgs => 4;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final x = values[0].toNumber()?.toDouble();
+    final n = values[1].toNumber()?.toDouble();
+    final m = values[2].toNumber()?.toDouble();
+    if (x == null || n == null || m == null) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    // Collect coefficients from the 4th argument (range or single value)
+    final coefficients = <double>[];
+    final coeffVal = values[3];
+    if (coeffVal is RangeValue) {
+      for (final row in coeffVal.values) {
+        for (final cell in row) {
+          final cv = cell.toNumber()?.toDouble();
+          if (cv == null) return const FormulaValue.error(FormulaError.value);
+          coefficients.add(cv);
+        }
+      }
+    } else {
+      final cv = coeffVal.toNumber()?.toDouble();
+      if (cv == null) return const FormulaValue.error(FormulaError.value);
+      coefficients.add(cv);
+    }
+
+    var sum = 0.0;
+    for (var i = 0; i < coefficients.length; i++) {
+      sum += coefficients[i] * math.pow(x, n + i * m);
+    }
+    return FormulaValue.number(sum);
+  }
+}
+
+/// SQRTPI(number) - Returns √(number × π).
+class SqrtPiFunction extends FormulaFunction {
+  @override
+  String get name => 'SQRTPI';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final n = value.toNumber()?.toDouble();
+    if (n == null) return const FormulaValue.error(FormulaError.value);
+    if (n < 0) return const FormulaValue.error(FormulaError.num);
+    return FormulaValue.number(math.sqrt(n * math.pi));
+  }
+}
+
+/// MULTINOMIAL(n1, n2, ...) - Returns (n1+n2+...)! / (n1!·n2!·...).
+class MultinomialFunction extends FormulaFunction {
+  @override
+  String get name => 'MULTINOMIAL';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => -1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final numbers = <int>[];
+    for (final n in collectNumbers(args, context)) {
+      final intN = n.toInt();
+      if (intN < 0) return const FormulaValue.error(FormulaError.num);
+      numbers.add(intN);
+    }
+    if (numbers.isEmpty) return const FormulaValue.error(FormulaError.value);
+
+    final total = numbers.fold(0, (a, b) => a + b);
+    var result = _factorial(total);
+    for (final n in numbers) {
+      result /= _factorial(n);
+    }
+    return FormulaValue.number(result.round());
   }
 }

@@ -1488,4 +1488,270 @@ void main() {
       ]);
     });
   });
+
+  // ─── Matrix Functions ─────────────────────────────────────
+
+  group('MUNIT', () {
+    test('1x1 identity', () {
+      final result = eval(registry.get('MUNIT')!, [const NumberNode(1)]);
+      expectRange(result, [
+        [const NumberValue(1)],
+      ]);
+    });
+
+    test('3x3 identity', () {
+      final result = eval(registry.get('MUNIT')!, [const NumberNode(3)]);
+      expectRange(result, [
+        [const NumberValue(1), const NumberValue(0), const NumberValue(0)],
+        [const NumberValue(0), const NumberValue(1), const NumberValue(0)],
+        [const NumberValue(0), const NumberValue(0), const NumberValue(1)],
+      ]);
+    });
+
+    test('non-integer truncates', () {
+      final result = eval(registry.get('MUNIT')!, [const NumberNode(2.9)]);
+      expectRange(result, [
+        [const NumberValue(1), const NumberValue(0)],
+        [const NumberValue(0), const NumberValue(1)],
+      ]);
+    });
+
+    test('0 returns #VALUE!', () {
+      final result = eval(registry.get('MUNIT')!, [const NumberNode(0)]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+
+    test('negative returns #VALUE!', () {
+      final result = eval(registry.get('MUNIT')!, [const NumberNode(-2)]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('MMULT', () {
+    test('2x2 multiply', () {
+      // [[1,2],[3,4]] * [[5,6],[7,8]] = [[19,22],[43,50]]
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2)],
+        [NumberValue(3), NumberValue(4)],
+      ]);
+      context.rangeMap['C1:D2'] = const RangeValue([
+        [NumberValue(5), NumberValue(6)],
+        [NumberValue(7), NumberValue(8)],
+      ]);
+      final result = eval(registry.get('MMULT')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+        RangeRefNode(A1Reference.parse('C1:D2')),
+      ]);
+      expectRange(result, [
+        [const NumberValue(19), const NumberValue(22)],
+        [const NumberValue(43), const NumberValue(50)],
+      ]);
+    });
+
+    test('non-square compatible: 2x3 * 3x2', () {
+      context.rangeMap['A1:C2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2), NumberValue(3)],
+        [NumberValue(4), NumberValue(5), NumberValue(6)],
+      ]);
+      context.rangeMap['D1:E3'] = const RangeValue([
+        [NumberValue(7), NumberValue(8)],
+        [NumberValue(9), NumberValue(10)],
+        [NumberValue(11), NumberValue(12)],
+      ]);
+      final result = eval(registry.get('MMULT')!, [
+        RangeRefNode(A1Reference.parse('A1:C2')),
+        RangeRefNode(A1Reference.parse('D1:E3')),
+      ]);
+      // [1*7+2*9+3*11, 1*8+2*10+3*12] = [58, 64]
+      // [4*7+5*9+6*11, 4*8+5*10+6*12] = [139, 154]
+      expectRange(result, [
+        [const NumberValue(58), const NumberValue(64)],
+        [const NumberValue(139), const NumberValue(154)],
+      ]);
+    });
+
+    test('dimension mismatch returns #VALUE!', () {
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2)],
+        [NumberValue(3), NumberValue(4)],
+      ]);
+      context.rangeMap['C1:E1'] = const RangeValue([
+        [NumberValue(5), NumberValue(6), NumberValue(7)],
+      ]);
+      final result = eval(registry.get('MMULT')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+        RangeRefNode(A1Reference.parse('C1:E1')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+
+    test('non-numeric values return #VALUE!', () {
+      context.rangeMap['A1:A1'] = const RangeValue([
+        [TextValue('x')],
+      ]);
+      context.rangeMap['B1:B1'] = const RangeValue([
+        [NumberValue(1)],
+      ]);
+      final result = eval(registry.get('MMULT')!, [
+        RangeRefNode(A1Reference.parse('A1:A1')),
+        RangeRefNode(A1Reference.parse('B1:B1')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('MDETERM', () {
+    test('1x1 determinant', () {
+      context.rangeMap['A1:A1'] = const RangeValue([
+        [NumberValue(5)],
+      ]);
+      final result = eval(registry.get('MDETERM')!, [
+        RangeRefNode(A1Reference.parse('A1:A1')),
+      ]);
+      expect(result, const NumberValue(5));
+    });
+
+    test('2x2 determinant', () {
+      // [[1,2],[3,4]] det = 1*4-2*3 = -2
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2)],
+        [NumberValue(3), NumberValue(4)],
+      ]);
+      final result = eval(registry.get('MDETERM')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expect(result, const NumberValue(-2));
+    });
+
+    test('3x3 determinant', () {
+      // [[1,2,3],[4,5,6],[7,8,0]] det = 27
+      context.rangeMap['A1:C3'] = const RangeValue([
+        [NumberValue(1), NumberValue(2), NumberValue(3)],
+        [NumberValue(4), NumberValue(5), NumberValue(6)],
+        [NumberValue(7), NumberValue(8), NumberValue(0)],
+      ]);
+      final result = eval(registry.get('MDETERM')!, [
+        RangeRefNode(A1Reference.parse('A1:C3')),
+      ]);
+      expect(result, const NumberValue(27));
+    });
+
+    test('singular matrix returns 0', () {
+      // [[1,2],[2,4]] det = 0
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2)],
+        [NumberValue(2), NumberValue(4)],
+      ]);
+      final result = eval(registry.get('MDETERM')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expect(result, const NumberValue(0));
+    });
+
+    test('non-square returns #VALUE!', () {
+      context.rangeMap['A1:C2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2), NumberValue(3)],
+        [NumberValue(4), NumberValue(5), NumberValue(6)],
+      ]);
+      final result = eval(registry.get('MDETERM')!, [
+        RangeRefNode(A1Reference.parse('A1:C2')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('MINVERSE', () {
+    test('2x2 inverse', () {
+      // [[4,7],[2,6]] inverse = [[0.6,-0.7],[-0.2,0.4]]
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(4), NumberValue(7)],
+        [NumberValue(2), NumberValue(6)],
+      ]);
+      final result = eval(registry.get('MINVERSE')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expect(result, isA<RangeValue>());
+      final rv = result as RangeValue;
+      expect(rv.rowCount, 2);
+      expect(rv.columnCount, 2);
+      expect((rv.values[0][0] as NumberValue).value.toDouble(),
+          closeTo(0.6, 1e-10));
+      expect((rv.values[0][1] as NumberValue).value.toDouble(),
+          closeTo(-0.7, 1e-10));
+      expect((rv.values[1][0] as NumberValue).value.toDouble(),
+          closeTo(-0.2, 1e-10));
+      expect((rv.values[1][1] as NumberValue).value.toDouble(),
+          closeTo(0.4, 1e-10));
+    });
+
+    test('identity matrix is its own inverse', () {
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), NumberValue(0)],
+        [NumberValue(0), NumberValue(1)],
+      ]);
+      final result = eval(registry.get('MINVERSE')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expectRange(result, [
+        [const NumberValue(1), const NumberValue(0)],
+        [const NumberValue(0), const NumberValue(1)],
+      ]);
+    });
+
+    test('singular matrix returns #NUM!', () {
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2)],
+        [NumberValue(2), NumberValue(4)],
+      ]);
+      final result = eval(registry.get('MINVERSE')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+
+    test('non-square returns #VALUE!', () {
+      context.rangeMap['A1:C2'] = const RangeValue([
+        [NumberValue(1), NumberValue(2), NumberValue(3)],
+        [NumberValue(4), NumberValue(5), NumberValue(6)],
+      ]);
+      final result = eval(registry.get('MINVERSE')!, [
+        RangeRefNode(A1Reference.parse('A1:C2')),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+
+    test('3x3 inverse: A * A^-1 ≈ I', () {
+      context.rangeMap['A1:C3'] = const RangeValue([
+        [NumberValue(1), NumberValue(2), NumberValue(3)],
+        [NumberValue(0), NumberValue(1), NumberValue(4)],
+        [NumberValue(5), NumberValue(6), NumberValue(0)],
+      ]);
+      final invResult = eval(registry.get('MINVERSE')!, [
+        RangeRefNode(A1Reference.parse('A1:C3')),
+      ]);
+      expect(invResult, isA<RangeValue>());
+      final inv = invResult as RangeValue;
+      expect(inv.rowCount, 3);
+      expect(inv.columnCount, 3);
+
+      // Verify A * A^-1 ≈ I by multiplying
+      context.rangeMap['D1:F3'] = invResult;
+      final product = eval(registry.get('MMULT')!, [
+        RangeRefNode(A1Reference.parse('A1:C3')),
+        RangeRefNode(A1Reference.parse('D1:F3')),
+      ]);
+      expect(product, isA<RangeValue>());
+      final pv = product as RangeValue;
+      for (var r = 0; r < 3; r++) {
+        for (var c = 0; c < 3; c++) {
+          final expected = r == c ? 1.0 : 0.0;
+          expect(
+            (pv.values[r][c] as NumberValue).value.toDouble(),
+            closeTo(expected, 1e-8),
+            reason: 'at [$r][$c]',
+          );
+        }
+      }
+    });
+  });
 }

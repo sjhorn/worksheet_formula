@@ -32,6 +32,10 @@ void registerArrayFunctions(FunctionRegistry registry) {
     UniqueFunction(),
     SortFunction(),
     SortByFunction(),
+    MunitFunction(),
+    MmultFunction(),
+    MdetermFunction(),
+    MinverseFunction(),
   ]);
 }
 
@@ -1010,5 +1014,287 @@ class SortByFunction extends FormulaFunction {
     return RangeValue([
       for (final idx in indices) List.of(matrix[idx]),
     ]);
+  }
+}
+
+// ─── Matrix Functions ───────────────────────────────────────
+
+/// MUNIT(dimension) - Returns the identity matrix of size N×N.
+class MunitFunction extends FormulaFunction {
+  @override
+  String get name => 'MUNIT';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final n = value.toNumber()?.toInt();
+    if (n == null) return const FormulaValue.error(FormulaError.value);
+    if (n < 1) return const FormulaValue.error(FormulaError.value);
+
+    final result = <List<FormulaValue>>[];
+    for (var r = 0; r < n; r++) {
+      final row = <FormulaValue>[];
+      for (var c = 0; c < n; c++) {
+        row.add(FormulaValue.number(r == c ? 1 : 0));
+      }
+      result.add(row);
+    }
+    return RangeValue(result);
+  }
+}
+
+/// MMULT(array1, array2) - Matrix multiplication.
+class MmultFunction extends FormulaFunction {
+  @override
+  String get name => 'MMULT';
+  @override
+  int get minArgs => 2;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final val1 = args[0].evaluate(context);
+    final val2 = args[1].evaluate(context);
+    if (val1.isError) return val1;
+    if (val2.isError) return val2;
+
+    final a = _toMatrix(val1);
+    final b = _toMatrix(val2);
+
+    final rowsA = a.length;
+    final colsA = a.isEmpty ? 0 : a[0].length;
+    final rowsB = b.length;
+    final colsB = b.isEmpty ? 0 : b[0].length;
+
+    if (colsA != rowsB) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    // Convert to numeric matrices
+    final numA = <List<double>>[];
+    for (final row in a) {
+      final numRow = <double>[];
+      for (final cell in row) {
+        final n = cell.toNumber()?.toDouble();
+        if (n == null) return const FormulaValue.error(FormulaError.value);
+        numRow.add(n);
+      }
+      numA.add(numRow);
+    }
+
+    final numB = <List<double>>[];
+    for (final row in b) {
+      final numRow = <double>[];
+      for (final cell in row) {
+        final n = cell.toNumber()?.toDouble();
+        if (n == null) return const FormulaValue.error(FormulaError.value);
+        numRow.add(n);
+      }
+      numB.add(numRow);
+    }
+
+    final result = <List<FormulaValue>>[];
+    for (var r = 0; r < rowsA; r++) {
+      final row = <FormulaValue>[];
+      for (var c = 0; c < colsB; c++) {
+        var sum = 0.0;
+        for (var k = 0; k < colsA; k++) {
+          sum += numA[r][k] * numB[k][c];
+        }
+        row.add(FormulaValue.number(sum));
+      }
+      result.add(row);
+    }
+    return RangeValue(result);
+  }
+}
+
+/// Convert a FormulaValue matrix to a list of lists of doubles.
+/// Returns null if any value is non-numeric.
+List<List<double>>? _toNumericMatrix(List<List<FormulaValue>> matrix) {
+  final result = <List<double>>[];
+  for (final row in matrix) {
+    final numRow = <double>[];
+    for (final cell in row) {
+      final n = cell.toNumber()?.toDouble();
+      if (n == null) return null;
+      numRow.add(n);
+    }
+    result.add(numRow);
+  }
+  return result;
+}
+
+/// MDETERM(array) - Returns the determinant of a square matrix.
+/// Uses LU decomposition with partial pivoting.
+class MdetermFunction extends FormulaFunction {
+  @override
+  String get name => 'MDETERM';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final val = args[0].evaluate(context);
+    if (val.isError) return val;
+
+    final matrix = _toMatrix(val);
+    final rows = matrix.length;
+    final cols = matrix.isEmpty ? 0 : matrix[0].length;
+    if (rows != cols) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+    if (rows == 0) return const FormulaValue.error(FormulaError.value);
+
+    final numMatrix = _toNumericMatrix(matrix);
+    if (numMatrix == null) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final n = rows;
+
+    // Make a mutable copy for LU decomposition
+    final lu = [for (final row in numMatrix) List<double>.from(row)];
+
+    var det = 1.0;
+    for (var i = 0; i < n; i++) {
+      // Partial pivoting
+      var maxVal = lu[i][i].abs();
+      var maxRow = i;
+      for (var k = i + 1; k < n; k++) {
+        if (lu[k][i].abs() > maxVal) {
+          maxVal = lu[k][i].abs();
+          maxRow = k;
+        }
+      }
+
+      if (maxRow != i) {
+        final tmp = lu[i];
+        lu[i] = lu[maxRow];
+        lu[maxRow] = tmp;
+        det = -det; // Row swap flips sign
+      }
+
+      if (lu[i][i] == 0) return const FormulaValue.number(0);
+
+      det *= lu[i][i];
+
+      for (var k = i + 1; k < n; k++) {
+        lu[k][i] /= lu[i][i];
+        for (var j = i + 1; j < n; j++) {
+          lu[k][j] -= lu[k][i] * lu[i][j];
+        }
+      }
+    }
+
+    // Round to avoid floating point noise for integer results
+    if ((det - det.roundToDouble()).abs() < 1e-10) {
+      det = det.roundToDouble();
+    }
+
+    return FormulaValue.number(det);
+  }
+}
+
+/// MINVERSE(array) - Returns the inverse of a square matrix.
+/// Uses Gauss-Jordan elimination.
+class MinverseFunction extends FormulaFunction {
+  @override
+  String get name => 'MINVERSE';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final val = args[0].evaluate(context);
+    if (val.isError) return val;
+
+    final matrix = _toMatrix(val);
+    final rows = matrix.length;
+    final cols = matrix.isEmpty ? 0 : matrix[0].length;
+    if (rows != cols) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+    if (rows == 0) return const FormulaValue.error(FormulaError.value);
+
+    final numMatrix = _toNumericMatrix(matrix);
+    if (numMatrix == null) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+
+    final n = rows;
+
+    // Augment with identity matrix
+    final aug = <List<double>>[];
+    for (var r = 0; r < n; r++) {
+      final row = List<double>.from(numMatrix[r]);
+      for (var c = 0; c < n; c++) {
+        row.add(r == c ? 1.0 : 0.0);
+      }
+      aug.add(row);
+    }
+
+    // Gauss-Jordan elimination with partial pivoting
+    for (var i = 0; i < n; i++) {
+      // Find pivot
+      var maxVal = aug[i][i].abs();
+      var maxRow = i;
+      for (var k = i + 1; k < n; k++) {
+        if (aug[k][i].abs() > maxVal) {
+          maxVal = aug[k][i].abs();
+          maxRow = k;
+        }
+      }
+
+      if (maxRow != i) {
+        final tmp = aug[i];
+        aug[i] = aug[maxRow];
+        aug[maxRow] = tmp;
+      }
+
+      final pivot = aug[i][i];
+      if (pivot.abs() < 1e-12) {
+        return const FormulaValue.error(FormulaError.num);
+      }
+
+      // Scale pivot row
+      for (var j = 0; j < 2 * n; j++) {
+        aug[i][j] /= pivot;
+      }
+
+      // Eliminate column in all other rows
+      for (var k = 0; k < n; k++) {
+        if (k == i) continue;
+        final factor = aug[k][i];
+        for (var j = 0; j < 2 * n; j++) {
+          aug[k][j] -= factor * aug[i][j];
+        }
+      }
+    }
+
+    // Extract the inverse (right half of augmented matrix)
+    final result = <List<FormulaValue>>[];
+    for (var r = 0; r < n; r++) {
+      final row = <FormulaValue>[];
+      for (var c = n; c < 2 * n; c++) {
+        var v = aug[r][c];
+        // Round near-integer values
+        if ((v - v.roundToDouble()).abs() < 1e-10) {
+          v = v.roundToDouble();
+        }
+        row.add(FormulaValue.number(v));
+      }
+      result.add(row);
+    }
+    return RangeValue(result);
   }
 }

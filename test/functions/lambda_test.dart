@@ -1064,9 +1064,9 @@ void main() {
       }
     });
 
-    test('total function count is 384', () {
+    test('total function count is 400', () {
       final fullRegistry = FunctionRegistry();
-      expect(fullRegistry.names.length, 384);
+      expect(fullRegistry.names.length, 400);
     });
   });
 }

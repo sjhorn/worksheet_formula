@@ -19,13 +19,18 @@ class _TestContext implements EvaluationContext {
   bool get isCancelled => false;
 
   final FunctionRegistry _registry;
+  Map<String, FormulaValue> rangeMap = {};
   _TestContext(this._registry);
 
   @override
   FormulaValue getCellValue(A1 cell) => const EmptyValue();
   @override
-  FormulaValue getRangeValues(A1Range range) =>
-      const FormulaValue.error(FormulaError.ref);
+  FormulaValue getRangeValues(A1Range range) {
+    final key = range.toString();
+    if (rangeMap.containsKey(key)) return rangeMap[key]!;
+    return const FormulaValue.error(FormulaError.ref);
+  }
+
   @override
   FormulaFunction? getFunction(String name) => _registry.get(name);
 }
@@ -955,6 +960,209 @@ void main() {
         const TextNode(','),
       ]);
       expect(result, const TextValue('hello'));
+    });
+  });
+
+  group('ARRAYTOTEXT', () {
+    test('concise format (default)', () {
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), TextValue('hello')],
+        [NumberValue(3), NumberValue(4)],
+      ]);
+      final result = eval(registry.get('ARRAYTOTEXT')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+      ]);
+      expect(result, const TextValue('1, hello; 3, 4'));
+    });
+
+    test('strict format', () {
+      context.rangeMap['A1:B2'] = const RangeValue([
+        [NumberValue(1), TextValue('hello')],
+        [NumberValue(3), NumberValue(4)],
+      ]);
+      final result = eval(registry.get('ARRAYTOTEXT')!, [
+        RangeRefNode(A1Reference.parse('A1:B2')),
+        const NumberNode(1),
+      ]);
+      expect(result, const TextValue('{1,"hello";3,4}'));
+    });
+
+    test('single value', () {
+      final result = eval(registry.get('ARRAYTOTEXT')!, [
+        const NumberNode(42),
+      ]);
+      expect(result, const TextValue('42'));
+    });
+
+    test('single row', () {
+      context.rangeMap['A1:C1'] = const RangeValue([
+        [NumberValue(1), NumberValue(2), NumberValue(3)],
+      ]);
+      final result = eval(registry.get('ARRAYTOTEXT')!, [
+        RangeRefNode(A1Reference.parse('A1:C1')),
+        const NumberNode(0),
+      ]);
+      expect(result, const TextValue('1, 2, 3'));
+    });
+  });
+
+  group('VALUETOTEXT', () {
+    test('number concise', () {
+      final result = eval(registry.get('VALUETOTEXT')!, [
+        const NumberNode(42),
+      ]);
+      expect(result, const TextValue('42'));
+    });
+
+    test('text concise (no quotes)', () {
+      final result = eval(registry.get('VALUETOTEXT')!, [
+        const TextNode('hello'),
+        const NumberNode(0),
+      ]);
+      expect(result, const TextValue('hello'));
+    });
+
+    test('text strict (with quotes)', () {
+      final result = eval(registry.get('VALUETOTEXT')!, [
+        const TextNode('hello'),
+        const NumberNode(1),
+      ]);
+      expect(result, const TextValue('"hello"'));
+    });
+
+    test('boolean remains as-is in strict mode', () {
+      final result = eval(registry.get('VALUETOTEXT')!, [
+        const BooleanNode(true),
+        const NumberNode(1),
+      ]);
+      expect(result, const TextValue('TRUE'));
+    });
+
+    test('error value', () {
+      final result = eval(registry.get('VALUETOTEXT')!, [
+        const ErrorNode(FormulaError.na),
+      ]);
+      expect(result, const TextValue('#N/A'));
+    });
+  });
+
+  group('ASC', () {
+    test('fullwidth letters to halfwidth', () {
+      // Ａ is U+FF21, Ｂ is U+FF22, Ｃ is U+FF23
+      final result = eval(registry.get('ASC')!, [
+        const TextNode('\uFF21\uFF22\uFF23'),
+      ]);
+      expect(result, const TextValue('ABC'));
+    });
+
+    test('fullwidth digits to halfwidth', () {
+      // １ is U+FF11, ２ is U+FF12
+      final result = eval(registry.get('ASC')!, [
+        const TextNode('\uFF11\uFF12\uFF13'),
+      ]);
+      expect(result, const TextValue('123'));
+    });
+
+    test('ideographic space to regular space', () {
+      final result = eval(registry.get('ASC')!, [
+        const TextNode('\u3000'),
+      ]);
+      expect(result, const TextValue(' '));
+    });
+
+    test('mixed content: leaves non-fullwidth unchanged', () {
+      final result = eval(registry.get('ASC')!, [
+        const TextNode('Hello\uFF21World'),
+      ]);
+      expect(result, const TextValue('HelloAWorld'));
+    });
+
+    test('already halfwidth stays same', () {
+      final result = eval(registry.get('ASC')!, [
+        const TextNode('ABC'),
+      ]);
+      expect(result, const TextValue('ABC'));
+    });
+  });
+
+  group('DBCS', () {
+    test('halfwidth letters to fullwidth', () {
+      final result = eval(registry.get('DBCS')!, [
+        const TextNode('ABC'),
+      ]);
+      expect(result, const TextValue('\uFF21\uFF22\uFF23'));
+    });
+
+    test('halfwidth digits to fullwidth', () {
+      final result = eval(registry.get('DBCS')!, [
+        const TextNode('123'),
+      ]);
+      expect(result, const TextValue('\uFF11\uFF12\uFF13'));
+    });
+
+    test('regular space to ideographic space', () {
+      final result = eval(registry.get('DBCS')!, [
+        const TextNode(' '),
+      ]);
+      expect(result, const TextValue('\u3000'));
+    });
+
+    test('roundtrip: ASC(DBCS(x)) = x for ASCII', () {
+      final dbcsResult = eval(registry.get('DBCS')!, [
+        const TextNode('Hello 123'),
+      ]);
+      final dbcsText = (dbcsResult as TextValue).value;
+      final ascResult = eval(registry.get('ASC')!, [
+        TextNode(dbcsText),
+      ]);
+      expect(ascResult, const TextValue('Hello 123'));
+    });
+  });
+
+  group('BAHTTEXT', () {
+    test('basic amount', () {
+      final result = eval(registry.get('BAHTTEXT')!, [
+        const NumberNode(1),
+      ]);
+      // 1 baht = หนึ่งบาทถ้วน
+      expect(result, const TextValue(
+          '\u0E2B\u0E19\u0E36\u0E48\u0E07\u0E1A\u0E32\u0E17\u0E16\u0E49\u0E27\u0E19'));
+    });
+
+    test('zero', () {
+      final result = eval(registry.get('BAHTTEXT')!, [
+        const NumberNode(0),
+      ]);
+      // ศูนย์บาทถ้วน
+      expect(result, const TextValue(
+          '\u0E28\u0E39\u0E19\u0E22\u0E4C\u0E1A\u0E32\u0E17\u0E16\u0E49\u0E27\u0E19'));
+    });
+
+    test('with satang', () {
+      final result = eval(registry.get('BAHTTEXT')!, [
+        const NumberNode(1.50),
+      ]);
+      // 1 baht 50 satang = หนึ่งบาทห้าสิบสตางค์
+      final text = (result as TextValue).value;
+      expect(text.contains('\u0E1A\u0E32\u0E17'), isTrue); // contains บาท
+      expect(text.contains('\u0E2A\u0E15\u0E32\u0E07\u0E04\u0E4C'), isTrue); // contains สตางค์
+    });
+
+    test('text returns #VALUE!', () {
+      final result = eval(registry.get('BAHTTEXT')!, [
+        const TextNode('abc'),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+
+    test('21 baht - special tens handling', () {
+      final result = eval(registry.get('BAHTTEXT')!, [
+        const NumberNode(21),
+      ]);
+      // ยี่สิบเอ็ดบาทถ้วน
+      final text = (result as TextValue).value;
+      expect(text.contains('\u0E22\u0E35\u0E48'), isTrue); // contains ยี่
+      expect(text.contains('\u0E40\u0E2D\u0E47\u0E14'), isTrue); // contains เอ็ด
     });
   });
 }

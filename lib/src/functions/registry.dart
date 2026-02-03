@@ -12,6 +12,7 @@ import 'math.dart';
 import 'statistical.dart';
 import 'statistical_advanced.dart';
 import 'text.dart';
+import 'web.dart';
 
 /// Registry of available formula functions.
 class FunctionRegistry {
@@ -33,6 +34,7 @@ class FunctionRegistry {
       registerEngineeringFunctions(this);
       registerDatabaseFunctions(this);
       registerLambdaFunctions(this);
+      registerWebFunctions(this);
     }
   }
 

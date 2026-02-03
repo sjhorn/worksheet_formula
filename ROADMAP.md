@@ -5,23 +5,24 @@ prioritised by real-world usage frequency.
 
 ## Current State
 
-**384 functions** across 13 categories:
+**400 functions** across 14 categories:
 
 | Category | Count | Functions |
 |----------|-------|-----------|
-| Math & Trig | 47 | SUM, AVERAGE, MIN, MAX, ABS, ROUND, INT, MOD, SQRT, POWER, SUMPRODUCT, ROUNDUP, ROUNDDOWN, CEILING, FLOOR, SIGN, PRODUCT, RAND, RANDBETWEEN, PI, LN, LOG, LOG10, EXP, SIN, COS, TAN, ASIN, ACOS, ATAN, ATAN2, DEGREES, RADIANS, EVEN, ODD, GCD, LCM, TRUNC, MROUND, QUOTIENT, COMBIN, COMBINA, FACT, FACTDOUBLE, SUMSQ, SUBTOTAL, AGGREGATE |
+| Math & Trig | 50 | SUM, AVERAGE, MIN, MAX, ABS, ROUND, INT, MOD, SQRT, POWER, SUMPRODUCT, ROUNDUP, ROUNDDOWN, CEILING, FLOOR, SIGN, PRODUCT, RAND, RANDBETWEEN, PI, LN, LOG, LOG10, EXP, SIN, COS, TAN, ASIN, ACOS, ATAN, ATAN2, DEGREES, RADIANS, EVEN, ODD, GCD, LCM, TRUNC, MROUND, QUOTIENT, COMBIN, COMBINA, FACT, FACTDOUBLE, SUMSQ, SUBTOTAL, AGGREGATE, SERIESSUM, SQRTPI, MULTINOMIAL |
 | Logical | 11 | IF, AND, OR, NOT, IFERROR, IFNA, TRUE, FALSE, IFS, SWITCH, XOR |
-| Text | 31 | CONCAT, CONCATENATE, LEFT, RIGHT, MID, LEN, LOWER, UPPER, TRIM, TEXT, FIND, SEARCH, SUBSTITUTE, REPLACE, VALUE, TEXTJOIN, PROPER, EXACT, REPT, CHAR, CODE, CLEAN, DOLLAR, FIXED, T, NUMBERVALUE, UNICHAR, UNICODE, TEXTBEFORE, TEXTAFTER, TEXTSPLIT |
+| Text | 36 | CONCAT, CONCATENATE, LEFT, RIGHT, MID, LEN, LOWER, UPPER, TRIM, TEXT, FIND, SEARCH, SUBSTITUTE, REPLACE, VALUE, TEXTJOIN, PROPER, EXACT, REPT, CHAR, CODE, CLEAN, DOLLAR, FIXED, T, NUMBERVALUE, UNICHAR, UNICODE, TEXTBEFORE, TEXTAFTER, TEXTSPLIT, ARRAYTOTEXT, VALUETOTEXT, ASC, DBCS, BAHTTEXT |
 | Statistical | 35 | COUNT, COUNTA, COUNTBLANK, COUNTIF, SUMIF, AVERAGEIF, SUMIFS, COUNTIFS, AVERAGEIFS, MEDIAN, MODE.SNGL, MODE, LARGE, SMALL, RANK.EQ, RANK, STDEV.S, STDEV.P, VAR.S, VAR.P, PERCENTILE.INC, PERCENTILE.EXC, PERCENTRANK.INC, PERCENTRANK.EXC, RANK.AVG, FREQUENCY, AVEDEV, AVERAGEA, MAXA, MINA, TRIMMEAN, GEOMEAN, HARMEAN, MAXIFS, MINIFS |
 | Lookup & Ref | 18 | VLOOKUP, INDEX, MATCH, HLOOKUP, LOOKUP, CHOOSE, XMATCH, XLOOKUP, ROW, COLUMN, ROWS, COLUMNS, ADDRESS, INDIRECT, OFFSET, TRANSPOSE, HYPERLINK, AREAS |
 | Date/Time | 25 | DATE, TODAY, NOW, YEAR, MONTH, DAY, DAYS, DATEDIF, DATEVALUE, WEEKDAY, HOUR, MINUTE, SECOND, TIME, EDATE, EOMONTH, TIMEVALUE, WEEKNUM, ISOWEEKNUM, NETWORKDAYS, NETWORKDAYS.INTL, WORKDAY, WORKDAY.INTL, DAYS360, YEARFRAC |
 | Information | 15 | ISBLANK, ISERROR, ISNUMBER, ISTEXT, ISLOGICAL, ISNA, TYPE, ISERR, ISNONTEXT, ISEVEN, ISODD, ISREF, N, NA, ERROR.TYPE |
-| Dynamic Array | 17 | SEQUENCE, RANDARRAY, TOCOL, TOROW, WRAPROWS, WRAPCOLS, CHOOSEROWS, CHOOSECOLS, DROP, TAKE, EXPAND, HSTACK, VSTACK, FILTER, UNIQUE, SORT, SORTBY |
+| Dynamic Array | 21 | SEQUENCE, RANDARRAY, TOCOL, TOROW, WRAPROWS, WRAPCOLS, CHOOSEROWS, CHOOSECOLS, DROP, TAKE, EXPAND, HSTACK, VSTACK, FILTER, UNIQUE, SORT, SORTBY, MUNIT, MMULT, MDETERM, MINVERSE |
 | Financial | 40 | PMT, FV, PV, NPER, RATE, IPMT, PPMT, CUMIPMT, CUMPRINC, NPV, XNPV, IRR, XIRR, MIRR, FVSCHEDULE, SLN, SYD, DB, DDB, VDB, PRICE, YIELD, DURATION, MDURATION, ACCRINT, DISC, INTRATE, RECEIVED, PRICEDISC, PRICEMAT, TBILLEQ, TBILLPRICE, TBILLYIELD, DOLLARDE, DOLLARFR, EFFECT, NOMINAL, PDURATION, RRI, ISPMT |
 | Adv. Statistical | 70 | FISHER, FISHERINV, STANDARDIZE, PERMUT, PERMUTATIONA, DEVSQ, KURT, SKEW, SKEW.P, COVARIANCE.P, COVARIANCE.S, CORREL, PEARSON, RSQ, SLOPE, INTERCEPT, STEYX, FORECAST.LINEAR, PROB, MODE.MULT, STDEVA, STDEVPA, VARA, VARPA, GAMMA, GAMMALN, GAMMALN.PRECISE, GAUSS, PHI, NORM.S.DIST, NORM.S.INV, NORM.DIST, NORM.INV, BINOM.DIST, BINOM.INV, BINOM.DIST.RANGE, NEGBINOM.DIST, HYPGEOM.DIST, POISSON.DIST, EXPON.DIST, GAMMA.DIST, GAMMA.INV, BETA.DIST, BETA.INV, CHISQ.DIST, CHISQ.INV, CHISQ.DIST.RT, CHISQ.INV.RT, T.DIST, T.INV, T.DIST.2T, T.INV.2T, T.DIST.RT, F.DIST, F.INV, F.DIST.RT, F.INV.RT, WEIBULL.DIST, LOGNORM.DIST, LOGNORM.INV, CONFIDENCE.NORM, CONFIDENCE.T, Z.TEST, T.TEST, CHISQ.TEST, F.TEST, LINEST, LOGEST, TREND, GROWTH |
 | Engineering | 54 | DELTA, GESTEP, BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT, BIN2DEC, BIN2HEX, BIN2OCT, DEC2BIN, DEC2HEX, DEC2OCT, HEX2BIN, HEX2DEC, HEX2OCT, OCT2BIN, OCT2DEC, OCT2HEX, BASE, DECIMAL, ARABIC, ROMAN, ERF, ERF.PRECISE, ERFC, ERFC.PRECISE, COMPLEX, IMREAL, IMAGINARY, IMABS, IMARGUMENT, IMCONJUGATE, IMSUM, IMSUB, IMPRODUCT, IMDIV, IMPOWER, IMSQRT, IMEXP, IMLN, IMLOG10, IMLOG2, IMSIN, IMCOS, IMTAN, IMSINH, IMCOSH, IMSEC, IMSECH, IMCSC, IMCSCH, IMCOT, CONVERT |
 | Database | 12 | DSUM, DAVERAGE, DCOUNT, DCOUNTA, DMAX, DMIN, DGET, DPRODUCT, DSTDEV, DSTDEVP, DVAR, DVARP |
 | Lambda & Higher-Order | 9 | LAMBDA, LET, MAP, REDUCE, SCAN, MAKEARRAY, BYCOL, BYROW, ISOMITTED |
+| Web & Regex | 4 | ENCODEURL, REGEXMATCH, REGEXEXTRACT, REGEXREPLACE |
 
 ---
 
@@ -591,23 +592,39 @@ Structural changes: added `NameNode` to AST, `FunctionValue`/`OmittedValue` to v
 
 ---
 
-## Phase 9 — Remaining & Niche Functions
+## Phase 9 — Remaining & Niche Functions ✅ Complete
 
-### Web
+16 functions implemented and tested (1625 tests passing).
+New category file: `lib/src/functions/web.dart`.
+2 functions deferred (GETPIVOTDATA — requires pivot table metadata; PHONETIC — requires IME/furigana mapping data).
+
+### Web & Regex
 
 | Function | Description |
 |----------|-------------|
 | ENCODEURL | URL-encode a string |
-
-### Regex (Google Sheets)
-
-| Function | Description |
-|----------|-------------|
 | REGEXMATCH | Test if text matches pattern |
 | REGEXEXTRACT | Extract first match |
 | REGEXREPLACE | Replace matches |
 
-### Other
+### Math
+
+| Function | Description |
+|----------|-------------|
+| SERIESSUM | Power series sum |
+| SQRTPI | Square root of n × π |
+| MULTINOMIAL | Multinomial coefficient |
+
+### Matrix
+
+| Function | Description |
+|----------|-------------|
+| MUNIT | Identity matrix |
+| MMULT | Matrix multiplication |
+| MDETERM | Matrix determinant (LU decomposition) |
+| MINVERSE | Matrix inverse (Gauss-Jordan elimination) |
+
+### Text
 
 | Function | Description |
 |----------|-------------|
@@ -616,17 +633,8 @@ Structural changes: added `NameNode` to AST, `FunctionValue`/`OmittedValue` to v
 | ASC | Full-width to half-width (CJK) |
 | DBCS | Half-width to full-width (CJK) |
 | BAHTTEXT | Number to Thai Baht text |
-| PHONETIC | Extract phonetic (furigana) |
-| GETPIVOTDATA | Value from a PivotTable |
-| SERIESSUM | Power series sum |
-| SQRTPI | Square root of n * pi |
-| MULTINOMIAL | Multinomial coefficient |
-| MUNIT | Unit matrix |
-| MDETERM | Matrix determinant |
-| MINVERSE | Matrix inverse |
-| MMULT | Matrix multiplication |
 
-**Phase 9 total: ~18 functions → brings library to ~402+ functions**
+**Phase 9 total: 16 functions (2 deferred) → brought library from 384 to 400 functions**
 
 ---
 
@@ -642,7 +650,6 @@ Structural changes: added `NameNode` to AST, `FunctionValue`/`OmittedValue` to v
 | 6 | Engineering | 54 | 363 | Done |
 | 7 | Database | 12 | 375 | Done |
 | 8 | Lambda / higher-order | 9 | 384 | Done |
-| 9 | Remaining & niche | ~18 | ~402+ | |
+| 9 | Remaining & niche | 16 | 400 | Done |
 
-Phases 1–8 are complete, covering the functions the vast majority of users need plus dynamic array support, financial functions, advanced statistical/probability distributions, engineering functions, database functions, and lambda/higher-order functions.
-Phase 9 provides remaining niche and completeness coverage.
+All 9 phases are complete, covering 400 functions across 14 categories.

@@ -41,6 +41,11 @@ void registerTextFunctions(FunctionRegistry registry) {
     TextBeforeFunction(),
     TextAfterFunction(),
     TextSplitFunction(),
+    ArrayToTextFunction(),
+    ValueToTextFunction(),
+    AscFunction(),
+    DbcsFunction(),
+    BahtTextFunction(),
   ]);
 }
 
@@ -1093,5 +1098,245 @@ class TextSplitFunction extends FormulaFunction {
       start = pos + delimiter.length;
     }
     return parts;
+  }
+}
+
+/// ARRAYTOTEXT(array, [format]) - Converts an array to text.
+/// format=0 (default): concise — comma-separated, semicolons between rows
+/// format=1: strict — braces, quoted strings: {1,"hello";3,4}
+class ArrayToTextFunction extends FormulaFunction {
+  @override
+  String get name => 'ARRAYTOTEXT';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final arrayVal = values[0];
+    final format = args.length > 1 ? values[1].toNumber()?.toInt() ?? 0 : 0;
+
+    if (arrayVal is RangeValue) {
+      final rows = <String>[];
+      for (final row in arrayVal.values) {
+        final cells = <String>[];
+        for (final cell in row) {
+          cells.add(_formatCell(cell, format));
+        }
+        rows.add(cells.join(format == 1 ? ',' : ', '));
+      }
+      final joined = rows.join(format == 1 ? ';' : '; ');
+      return FormulaValue.text(format == 1 ? '{$joined}' : joined);
+    }
+
+    return FormulaValue.text(_formatCell(arrayVal, format));
+  }
+
+  String _formatCell(FormulaValue cell, int format) {
+    if (format == 1 && cell is TextValue) {
+      return '"${cell.value}"';
+    }
+    return cell.toText();
+  }
+}
+
+/// VALUETOTEXT(value, [format]) - Converts a value to text.
+/// format=0 (default): concise — plain value
+/// format=1: strict — text gets quotes
+class ValueToTextFunction extends FormulaFunction {
+  @override
+  String get name => 'VALUETOTEXT';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 2;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final values = evaluateArgs(args, context);
+    final value = values[0];
+    final format = args.length > 1 ? values[1].toNumber()?.toInt() ?? 0 : 0;
+
+    if (format == 1 && value is TextValue) {
+      return FormulaValue.text('"${value.value}"');
+    }
+    return FormulaValue.text(value.toText());
+  }
+}
+
+/// ASC(text) - Converts full-width (CJK) characters to half-width.
+class AscFunction extends FormulaFunction {
+  @override
+  String get name => 'ASC';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final text = value.toText();
+    final buffer = StringBuffer();
+    for (final codeUnit in text.runes) {
+      if (codeUnit >= 0xFF01 && codeUnit <= 0xFF5E) {
+        // Fullwidth ASCII variants → ASCII
+        buffer.writeCharCode(codeUnit - 0xFF01 + 0x0021);
+      } else if (codeUnit == 0x3000) {
+        // Ideographic space → regular space
+        buffer.writeCharCode(0x0020);
+      } else {
+        buffer.writeCharCode(codeUnit);
+      }
+    }
+    return FormulaValue.text(buffer.toString());
+  }
+}
+
+/// DBCS(text) - Converts half-width characters to full-width (CJK).
+class DbcsFunction extends FormulaFunction {
+  @override
+  String get name => 'DBCS';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final text = value.toText();
+    final buffer = StringBuffer();
+    for (final codeUnit in text.runes) {
+      if (codeUnit >= 0x0021 && codeUnit <= 0x007E) {
+        // ASCII → fullwidth ASCII variants
+        buffer.writeCharCode(codeUnit - 0x0021 + 0xFF01);
+      } else if (codeUnit == 0x0020) {
+        // Regular space → ideographic space
+        buffer.writeCharCode(0x3000);
+      } else {
+        buffer.writeCharCode(codeUnit);
+      }
+    }
+    return FormulaValue.text(buffer.toString());
+  }
+}
+
+/// BAHTTEXT(number) - Converts a number to Thai Baht text.
+class BahtTextFunction extends FormulaFunction {
+  @override
+  String get name => 'BAHTTEXT';
+  @override
+  int get minArgs => 1;
+  @override
+  int get maxArgs => 1;
+
+  static const _digits = [
+    '',
+    '\u0E2B\u0E19\u0E36\u0E48\u0E07', // หนึ่ง
+    '\u0E2A\u0E2D\u0E07', // สอง
+    '\u0E2A\u0E32\u0E21', // สาม
+    '\u0E2A\u0E35\u0E48', // สี่
+    '\u0E2B\u0E49\u0E32', // ห้า
+    '\u0E2B\u0E01', // หก
+    '\u0E40\u0E08\u0E47\u0E14', // เจ็ด
+    '\u0E41\u0E1B\u0E14', // แปด
+    '\u0E40\u0E01\u0E49\u0E32', // เก้า
+  ];
+
+  static const _positions = [
+    '',
+    '\u0E2A\u0E34\u0E1A', // สิบ
+    '\u0E23\u0E49\u0E2D\u0E22', // ร้อย
+    '\u0E1E\u0E31\u0E19', // พัน
+    '\u0E2B\u0E21\u0E37\u0E48\u0E19', // หมื่น
+    '\u0E41\u0E2A\u0E19', // แสน
+  ];
+
+  static const _million = '\u0E25\u0E49\u0E32\u0E19'; // ล้าน
+  static const _baht = '\u0E1A\u0E32\u0E17'; // บาท
+  static const _satang = '\u0E2A\u0E15\u0E32\u0E07\u0E04\u0E4C'; // สตางค์
+  static const _exact = '\u0E16\u0E49\u0E27\u0E19'; // ถ้วน
+  static const _negative = '\u0E25\u0E1A'; // ลบ
+  static const _zero = '\u0E28\u0E39\u0E19\u0E22\u0E4C'; // ศูนย์
+  static const _ed = '\u0E40\u0E2D\u0E47\u0E14'; // เอ็ด
+  static const _yee = '\u0E22\u0E35\u0E48'; // ยี่
+
+  @override
+  FormulaValue call(List<FormulaNode> args, EvaluationContext context) {
+    final value = args[0].evaluate(context);
+    final n = value.toNumber()?.toDouble();
+    if (n == null) return const FormulaValue.error(FormulaError.value);
+
+    if (n == 0) return FormulaValue.text('$_zero$_baht$_exact');
+
+    final isNeg = n < 0;
+    final absN = n.abs();
+
+    // Split into integer and satang (2 decimal places)
+    final rounded = (absN * 100).round();
+    final intPart = rounded ~/ 100;
+    final satangPart = rounded % 100;
+
+    final buffer = StringBuffer();
+    if (isNeg) buffer.write(_negative);
+
+    if (intPart > 0) {
+      buffer.write(_convertGroup(intPart));
+      buffer.write(_baht);
+    }
+
+    if (satangPart > 0) {
+      if (intPart == 0) {
+        // No baht prefix needed but we still need to say zero baht
+      }
+      buffer.write(_convertGroup(satangPart));
+      buffer.write(_satang);
+    } else {
+      buffer.write(_exact);
+    }
+
+    return FormulaValue.text(buffer.toString());
+  }
+
+  /// Convert an integer to Thai text (handles millions recursively).
+  String _convertGroup(int n) {
+    if (n == 0) return '';
+    if (n >= 1000000) {
+      final millions = n ~/ 1000000;
+      final remainder = n % 1000000;
+      return '${_convertGroup(millions)}$_million${_convertGroup(remainder)}';
+    }
+
+    final buffer = StringBuffer();
+    final digits = <int>[];
+    var temp = n;
+    while (temp > 0) {
+      digits.insert(0, temp % 10);
+      temp ~/= 10;
+    }
+
+    for (var i = 0; i < digits.length; i++) {
+      final pos = digits.length - 1 - i;
+      final d = digits[i];
+      if (d == 0) continue;
+      if (pos == 1 && d == 1) {
+        // 1 in tens position is just สิบ (not หนึ่งสิบ)
+        buffer.write(_positions[pos]);
+      } else if (pos == 1 && d == 2) {
+        // 2 in tens position is ยี่สิบ
+        buffer.write(_yee);
+        buffer.write(_positions[pos]);
+      } else if (pos == 0 && d == 1 && digits.length > 1) {
+        // 1 in ones position (when not alone) is เอ็ด
+        buffer.write(_ed);
+      } else {
+        buffer.write(_digits[d]);
+        if (pos > 0) buffer.write(_positions[pos]);
+      }
+    }
+    return buffer.toString();
   }
 }

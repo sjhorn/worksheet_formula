@@ -1025,4 +1025,125 @@ void main() {
       expect(result, const ErrorValue(FormulaError.value));
     });
   });
+
+  group('SERIESSUM', () {
+    test('basic power series', () {
+      // SERIESSUM(2, 0, 1, {1, 1, 1}) = 1*2^0 + 1*2^1 + 1*2^2 = 1+2+4 = 7
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1), NumberValue(1), NumberValue(1)],
+      ]);
+      final result = eval(registry.get('SERIESSUM')!, [
+        const NumberNode(2),
+        const NumberNode(0),
+        const NumberNode(1),
+        RangeRefNode(A1Reference.parse('A1:C1')),
+      ]);
+      expect(result, const NumberValue(7));
+    });
+
+    test('with non-zero starting power', () {
+      // SERIESSUM(3, 1, 2, {1, 1}) = 1*3^1 + 1*3^3 = 3+27 = 30
+      context.rangeOverride = const RangeValue([
+        [NumberValue(1), NumberValue(1)],
+      ]);
+      final result = eval(registry.get('SERIESSUM')!, [
+        const NumberNode(3),
+        const NumberNode(1),
+        const NumberNode(2),
+        RangeRefNode(A1Reference.parse('A1:B1')),
+      ]);
+      expect(result, const NumberValue(30));
+    });
+
+    test('single coefficient', () {
+      // SERIESSUM(5, 2, 1, 3) = 3*5^2 = 75
+      final result = eval(registry.get('SERIESSUM')!, [
+        const NumberNode(5),
+        const NumberNode(2),
+        const NumberNode(1),
+        const NumberNode(3),
+      ]);
+      expect(result, const NumberValue(75));
+    });
+
+    test('non-numeric x returns #VALUE!', () {
+      final result = eval(registry.get('SERIESSUM')!, [
+        const TextNode('x'),
+        const NumberNode(0),
+        const NumberNode(1),
+        const NumberNode(1),
+      ]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('SQRTPI', () {
+    test('SQRTPI(1) = sqrt(pi)', () {
+      final result = eval(registry.get('SQRTPI')!, [const NumberNode(1)]);
+      final val = (result as NumberValue).value.toDouble();
+      expect(val, closeTo(math.sqrt(math.pi), 1e-10));
+    });
+
+    test('SQRTPI(0) = 0', () {
+      final result = eval(registry.get('SQRTPI')!, [const NumberNode(0)]);
+      expect(result, const NumberValue(0));
+    });
+
+    test('SQRTPI(2)', () {
+      final result = eval(registry.get('SQRTPI')!, [const NumberNode(2)]);
+      final val = (result as NumberValue).value.toDouble();
+      expect(val, closeTo(math.sqrt(2 * math.pi), 1e-10));
+    });
+
+    test('negative returns #NUM!', () {
+      final result = eval(registry.get('SQRTPI')!, [const NumberNode(-1)]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+
+    test('text returns #VALUE!', () {
+      final result = eval(registry.get('SQRTPI')!, [const TextNode('abc')]);
+      expect(result, const ErrorValue(FormulaError.value));
+    });
+  });
+
+  group('MULTINOMIAL', () {
+    test('MULTINOMIAL(2,3) = 5!/(2!*3!) = 10', () {
+      final result = eval(registry.get('MULTINOMIAL')!, [
+        const NumberNode(2),
+        const NumberNode(3),
+      ]);
+      expect(result, const NumberValue(10));
+    });
+
+    test('MULTINOMIAL(2,3,4) = 9!/(2!*3!*4!) = 1260', () {
+      final result = eval(registry.get('MULTINOMIAL')!, [
+        const NumberNode(2),
+        const NumberNode(3),
+        const NumberNode(4),
+      ]);
+      expect(result, const NumberValue(1260));
+    });
+
+    test('single arg returns 1', () {
+      final result =
+          eval(registry.get('MULTINOMIAL')!, [const NumberNode(5)]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('all zeros returns 1', () {
+      final result = eval(registry.get('MULTINOMIAL')!, [
+        const NumberNode(0),
+        const NumberNode(0),
+      ]);
+      expect(result, const NumberValue(1));
+    });
+
+    test('negative returns #NUM!', () {
+      final result = eval(registry.get('MULTINOMIAL')!, [
+        const NumberNode(2),
+        const NumberNode(-1),
+      ]);
+      expect(result, const ErrorValue(FormulaError.num));
+    });
+  });
 }
