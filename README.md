@@ -5,7 +5,7 @@ A standalone formula engine for spreadsheet-like calculations in Dart.
 ## Features
 
 - Excel/Google Sheets compatible formula parsing
-- 309 built-in functions across 10 categories (math, logical, text, statistical, statistical advanced, lookup, date, information, array, financial)
+- 400 built-in functions across 14 categories (math, logical, text, statistical, statistical advanced, lookup, date, information, array, financial, engineering, database, lambda/higher-order, web/regex)
 - Dynamic array functions (FILTER, SORT, UNIQUE, SEQUENCE, etc.)
 - Type-safe formula values with Excel-compatible error handling
 - Cell dependency tracking for efficient recalculation
@@ -17,7 +17,7 @@ A standalone formula engine for spreadsheet-like calculations in Dart.
 
 ```yaml
 dependencies:
-  worksheet_formula: ^0.2.0
+  worksheet_formula: ^1.0.0
 ```
 
 ## Quick Start
@@ -61,6 +61,9 @@ class MyContext implements EvaluationContext {
 
   @override
   FormulaFunction? getFunction(String name) => registry.get(name);
+
+  @override
+  FormulaValue? getVariable(String name) => null;
 }
 ```
 
@@ -77,14 +80,14 @@ final result = engine.evaluateString('=SUM(A1:A2)', context);
 
 ## Built-in Functions
 
-### Math & Trigonometry (47)
-`SUM`, `AVERAGE`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `SQRT`, `POWER`, `SUMPRODUCT`, `ROUNDUP`, `ROUNDDOWN`, `CEILING`, `FLOOR`, `SIGN`, `PRODUCT`, `RAND`, `RANDBETWEEN`, `PI`, `LN`, `LOG`, `LOG10`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `DEGREES`, `RADIANS`, `EVEN`, `ODD`, `GCD`, `LCM`, `TRUNC`, `MROUND`, `QUOTIENT`, `COMBIN`, `COMBINA`, `FACT`, `FACTDOUBLE`, `SUMSQ`, `SUBTOTAL`, `AGGREGATE`
+### Math & Trigonometry (50)
+`SUM`, `AVERAGE`, `MIN`, `MAX`, `ABS`, `ROUND`, `INT`, `MOD`, `SQRT`, `POWER`, `SUMPRODUCT`, `ROUNDUP`, `ROUNDDOWN`, `CEILING`, `FLOOR`, `SIGN`, `PRODUCT`, `RAND`, `RANDBETWEEN`, `PI`, `LN`, `LOG`, `LOG10`, `EXP`, `SIN`, `COS`, `TAN`, `ASIN`, `ACOS`, `ATAN`, `ATAN2`, `DEGREES`, `RADIANS`, `EVEN`, `ODD`, `GCD`, `LCM`, `TRUNC`, `MROUND`, `QUOTIENT`, `COMBIN`, `COMBINA`, `FACT`, `FACTDOUBLE`, `SUMSQ`, `SUBTOTAL`, `AGGREGATE`, `SERIESSUM`, `SQRTPI`, `MULTINOMIAL`
 
 ### Logical (11)
 `IF`, `AND`, `OR`, `NOT`, `IFERROR`, `IFNA`, `TRUE`, `FALSE`, `IFS`, `SWITCH`, `XOR`
 
-### Text (31)
-`CONCAT`, `CONCATENATE`, `LEFT`, `RIGHT`, `MID`, `LEN`, `LOWER`, `UPPER`, `TRIM`, `TEXT`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `VALUE`, `TEXTJOIN`, `PROPER`, `EXACT`, `REPT`, `CHAR`, `CODE`, `CLEAN`, `DOLLAR`, `FIXED`, `T`, `NUMBERVALUE`, `UNICHAR`, `UNICODE`, `TEXTBEFORE`, `TEXTAFTER`, `TEXTSPLIT`
+### Text (36)
+`CONCAT`, `CONCATENATE`, `LEFT`, `RIGHT`, `MID`, `LEN`, `LOWER`, `UPPER`, `TRIM`, `TEXT`, `FIND`, `SEARCH`, `SUBSTITUTE`, `REPLACE`, `VALUE`, `TEXTJOIN`, `PROPER`, `EXACT`, `REPT`, `CHAR`, `CODE`, `CLEAN`, `DOLLAR`, `FIXED`, `T`, `NUMBERVALUE`, `UNICHAR`, `UNICODE`, `TEXTBEFORE`, `TEXTAFTER`, `TEXTSPLIT`, `ARRAYTOTEXT`, `VALUETOTEXT`, `ASC`, `DBCS`, `BAHTTEXT`
 
 ### Statistical (35)
 `COUNT`, `COUNTA`, `COUNTBLANK`, `COUNTIF`, `SUMIF`, `AVERAGEIF`, `SUMIFS`, `COUNTIFS`, `AVERAGEIFS`, `MEDIAN`, `MODE.SNGL`, `MODE`, `LARGE`, `SMALL`, `RANK.EQ`, `RANK`, `STDEV.S`, `STDEV.P`, `VAR.S`, `VAR.P`, `PERCENTILE.INC`, `PERCENTILE.EXC`, `PERCENTRANK.INC`, `PERCENTRANK.EXC`, `RANK.AVG`, `FREQUENCY`, `AVEDEV`, `AVERAGEA`, `MAXA`, `MINA`, `TRIMMEAN`, `GEOMEAN`, `HARMEAN`, `MAXIFS`, `MINIFS`
@@ -98,14 +101,26 @@ final result = engine.evaluateString('=SUM(A1:A2)', context);
 ### Information (15)
 `ISBLANK`, `ISERROR`, `ISNUMBER`, `ISTEXT`, `ISLOGICAL`, `ISNA`, `TYPE`, `ISERR`, `ISNONTEXT`, `ISEVEN`, `ISODD`, `ISREF`, `N`, `NA`, `ERROR.TYPE`
 
-### Dynamic Array (17)
-`SEQUENCE`, `RANDARRAY`, `TOCOL`, `TOROW`, `WRAPROWS`, `WRAPCOLS`, `CHOOSEROWS`, `CHOOSECOLS`, `DROP`, `TAKE`, `EXPAND`, `HSTACK`, `VSTACK`, `FILTER`, `UNIQUE`, `SORT`, `SORTBY`
+### Dynamic Array (21)
+`SEQUENCE`, `RANDARRAY`, `TOCOL`, `TOROW`, `WRAPROWS`, `WRAPCOLS`, `CHOOSEROWS`, `CHOOSECOLS`, `DROP`, `TAKE`, `EXPAND`, `HSTACK`, `VSTACK`, `FILTER`, `UNIQUE`, `SORT`, `SORTBY`, `MUNIT`, `MMULT`, `MDETERM`, `MINVERSE`
 
 ### Financial (40)
 `PMT`, `FV`, `PV`, `NPER`, `RATE`, `IPMT`, `PPMT`, `CUMIPMT`, `CUMPRINC`, `NPV`, `XNPV`, `IRR`, `XIRR`, `MIRR`, `FVSCHEDULE`, `SLN`, `SYD`, `DB`, `DDB`, `VDB`, `PRICE`, `YIELD`, `DURATION`, `MDURATION`, `ACCRINT`, `DISC`, `INTRATE`, `RECEIVED`, `PRICEDISC`, `PRICEMAT`, `TBILLEQ`, `TBILLPRICE`, `TBILLYIELD`, `DOLLARDE`, `DOLLARFR`, `EFFECT`, `NOMINAL`, `PDURATION`, `RRI`, `ISPMT`
 
 ### Advanced Statistical & Probability (70)
 `FISHER`, `FISHERINV`, `STANDARDIZE`, `PERMUT`, `PERMUTATIONA`, `DEVSQ`, `KURT`, `SKEW`, `SKEW.P`, `COVARIANCE.P`, `COVARIANCE.S`, `CORREL`, `PEARSON`, `RSQ`, `SLOPE`, `INTERCEPT`, `STEYX`, `FORECAST.LINEAR`, `PROB`, `MODE.MULT`, `STDEVA`, `STDEVPA`, `VARA`, `VARPA`, `GAMMA`, `GAMMALN`, `GAMMALN.PRECISE`, `GAUSS`, `PHI`, `NORM.S.DIST`, `NORM.S.INV`, `NORM.DIST`, `NORM.INV`, `BINOM.DIST`, `BINOM.INV`, `BINOM.DIST.RANGE`, `NEGBINOM.DIST`, `HYPGEOM.DIST`, `POISSON.DIST`, `EXPON.DIST`, `GAMMA.DIST`, `GAMMA.INV`, `BETA.DIST`, `BETA.INV`, `CHISQ.DIST`, `CHISQ.INV`, `CHISQ.DIST.RT`, `CHISQ.INV.RT`, `T.DIST`, `T.INV`, `T.DIST.2T`, `T.INV.2T`, `T.DIST.RT`, `F.DIST`, `F.INV`, `F.DIST.RT`, `F.INV.RT`, `WEIBULL.DIST`, `LOGNORM.DIST`, `LOGNORM.INV`, `CONFIDENCE.NORM`, `CONFIDENCE.T`, `Z.TEST`, `T.TEST`, `CHISQ.TEST`, `F.TEST`, `LINEST`, `LOGEST`, `TREND`, `GROWTH`
+
+### Engineering (54)
+`DELTA`, `GESTEP`, `BITAND`, `BITOR`, `BITXOR`, `BITLSHIFT`, `BITRSHIFT`, `BIN2DEC`, `BIN2HEX`, `BIN2OCT`, `DEC2BIN`, `DEC2HEX`, `DEC2OCT`, `HEX2BIN`, `HEX2DEC`, `HEX2OCT`, `OCT2BIN`, `OCT2DEC`, `OCT2HEX`, `BASE`, `DECIMAL`, `ARABIC`, `ROMAN`, `ERF`, `ERF.PRECISE`, `ERFC`, `ERFC.PRECISE`, `COMPLEX`, `IMREAL`, `IMAGINARY`, `IMABS`, `IMARGUMENT`, `IMCONJUGATE`, `IMSUM`, `IMSUB`, `IMPRODUCT`, `IMDIV`, `IMPOWER`, `IMSQRT`, `IMEXP`, `IMLN`, `IMLOG10`, `IMLOG2`, `IMSIN`, `IMCOS`, `IMTAN`, `IMSINH`, `IMCOSH`, `IMSEC`, `IMSECH`, `IMCSC`, `IMCSCH`, `IMCOT`, `CONVERT`
+
+### Database (12)
+`DSUM`, `DAVERAGE`, `DCOUNT`, `DCOUNTA`, `DMAX`, `DMIN`, `DGET`, `DPRODUCT`, `DSTDEV`, `DSTDEVP`, `DVAR`, `DVARP`
+
+### Lambda & Higher-Order (9)
+`LAMBDA`, `LET`, `MAP`, `REDUCE`, `SCAN`, `MAKEARRAY`, `BYCOL`, `BYROW`, `ISOMITTED`
+
+### Web & Regex (4)
+`ENCODEURL`, `REGEXMATCH`, `REGEXEXTRACT`, `REGEXREPLACE`
 
 ## Custom Functions
 

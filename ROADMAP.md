@@ -638,6 +638,37 @@ New category file: `lib/src/functions/web.dart`.
 
 ---
 
+## Phase 10 — Deferred Functions (Future)
+
+7 functions deferred from earlier phases. These require either host-app integration
+or external data that is outside the scope of a standalone formula engine.
+
+### Context-Dependent Functions (5)
+
+These were deferred from Phase 2 because they require extensions to `EvaluationContext` —
+the host application must provide the data.
+
+| Function | Needs | Implementation Approach |
+|----------|-------|------------------------|
+| FORMULATEXT | Access to raw formula text of a cell | Add `String? getFormulaText(A1 cell)` to `EvaluationContext`. Returns the formula string for a cell, or null if not a formula. |
+| ISFORMULA | Know whether a cell contains a formula | Same as FORMULATEXT — `getFormulaText(cell) != null` |
+| CELL | Cell metadata (address, format, width, etc.) | Add `Map<String, FormulaValue>? getCellInfo(A1 cell, String infoType)` to `EvaluationContext`. The "type_num" values depend on host. |
+| SHEET | Sheet number of a reference | Add `int? getSheetNumber(String? sheetName)` to `EvaluationContext` |
+| SHEETS | Total number of sheets | Add `int? get sheetCount` to `EvaluationContext` |
+
+**Note**: These would be breaking changes to the `EvaluationContext` interface.
+Could be mitigated by adding default implementations (returning null/error) via a
+mixin or making them optional methods with default `null` returns.
+
+### Won't-Implement Functions (2)
+
+| Function | Reason |
+|----------|--------|
+| GETPIVOTDATA | Requires pivot table metadata — outside formula engine scope |
+| PHONETIC | Requires IME/furigana mapping data — needs external CJK library |
+
+---
+
 ## Summary
 
 | Phase | Focus | New | Running Total | Status |
@@ -651,5 +682,7 @@ New category file: `lib/src/functions/web.dart`.
 | 7 | Database | 12 | 375 | Done |
 | 8 | Lambda / higher-order | 9 | 384 | Done |
 | 9 | Remaining & niche | 16 | 400 | Done |
+| 10 | Deferred functions | 5–7 | 405–407 | Future |
 
-All 9 phases are complete, covering 400 functions across 14 categories.
+Phases 1–9 are complete, covering 400 functions across 14 categories.
+Phase 10 tracks 7 deferred functions for future consideration.

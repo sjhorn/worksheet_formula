@@ -1,3 +1,46 @@
+## 1.0.0
+
+- **1.0 release** — 400 built-in functions across 14 categories
+- Phase 9: 16 remaining & niche functions (ENCODEURL, REGEXMATCH, REGEXEXTRACT, REGEXREPLACE, SERIESSUM, SQRTPI, MULTINOMIAL, MUNIT, MMULT, MDETERM, MINVERSE, ARRAYTOTEXT, VALUETOTEXT, ASC, DBCS, BAHTTEXT)
+- New category: Web & Regex (4 functions)
+- Matrix functions: MUNIT, MMULT, MDETERM (LU decomposition), MINVERSE (Gauss-Jordan elimination)
+- CJK text functions: ASC, DBCS, BAHTTEXT
+- Phase 10 roadmap for 7 deferred functions (context-dependent and out-of-scope)
+- Updated README, pubspec, and documentation to reflect 400-function state
+- 2 functions deferred: GETPIVOTDATA (pivot table metadata), PHONETIC (IME/furigana data)
+- 1625+ tests passing
+
+## 0.9.0
+
+- **Lambda & higher-order functions** (9): LAMBDA, LET, MAP, REDUCE, SCAN, MAKEARRAY, BYCOL, BYROW, ISOMITTED
+- LAMBDA creates custom function closures (FunctionValue)
+- LET defines named variables within formulas
+- MAP, REDUCE, SCAN for functional array processing
+- MAKEARRAY builds arrays from lambda with 1-based indices
+- BYCOL, BYROW apply lambda to each column/row
+- ISOMITTED tests if a lambda argument was omitted (OmittedValue)
+- Structural changes: NameNode in AST, FunctionValue/OmittedValue in values, getVariable() on EvaluationContext, bare identifier parsing
+- 384 total built-in functions across 13 categories
+
+## 0.8.0
+
+- **Database functions** (12): DSUM, DAVERAGE, DCOUNT, DCOUNTA, DMAX, DMIN, DGET, DPRODUCT, DSTDEV, DSTDEVP, DVAR, DVARP
+- Structured criteria matching against database ranges (header row + data rows)
+- Support for comparison operators in criteria (>, <, >=, <=, <>)
+- DGET returns #VALUE! when multiple rows match, #VALUE! when none match
+- 375 total built-in functions across 12 categories
+
+## 0.7.0
+
+- **Engineering functions** (54): DELTA, GESTEP, BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT, BIN2DEC, BIN2HEX, BIN2OCT, DEC2BIN, DEC2HEX, DEC2OCT, HEX2BIN, HEX2DEC, HEX2OCT, OCT2BIN, OCT2DEC, OCT2HEX, BASE, DECIMAL, ARABIC, ROMAN, ERF, ERF.PRECISE, ERFC, ERFC.PRECISE, COMPLEX, IMREAL, IMAGINARY, IMABS, IMARGUMENT, IMCONJUGATE, IMSUM, IMSUB, IMPRODUCT, IMDIV, IMPOWER, IMSQRT, IMEXP, IMLN, IMLOG10, IMLOG2, IMSIN, IMCOS, IMTAN, IMSINH, IMCOSH, IMSEC, IMSECH, IMCSC, IMCSCH, IMCOT, CONVERT
+- Comparison & bitwise: DELTA, GESTEP, BITAND, BITOR, BITXOR, BITLSHIFT, BITRSHIFT
+- Base conversion: BIN2DEC, BIN2HEX, BIN2OCT, DEC2BIN, DEC2HEX, DEC2OCT, HEX2BIN, HEX2DEC, HEX2OCT, OCT2BIN, OCT2DEC, OCT2HEX, BASE, DECIMAL
+- Number format: ARABIC, ROMAN
+- Error functions: ERF, ERF.PRECISE, ERFC, ERFC.PRECISE
+- Complex number arithmetic: 26 IM* functions (COMPLEX, IMREAL, IMAGINARY, IMABS, etc.)
+- Unit conversion: CONVERT with 13 categories, ~100 units, metric + binary prefixes
+- 363 total built-in functions across 11 categories
+
 ## 0.6.0
 
 - **Advanced statistical & probability functions** (70): FISHER, FISHERINV, STANDARDIZE, PERMUT, PERMUTATIONA, DEVSQ, KURT, SKEW, SKEW.P, COVARIANCE.P, COVARIANCE.S, CORREL, PEARSON, RSQ, SLOPE, INTERCEPT, STEYX, FORECAST.LINEAR, PROB, MODE.MULT, STDEVA, STDEVPA, VARA, VARPA, GAMMA, GAMMALN, GAMMALN.PRECISE, GAUSS, PHI, NORM.S.DIST, NORM.S.INV, NORM.DIST, NORM.INV, BINOM.DIST, BINOM.INV, BINOM.DIST.RANGE, NEGBINOM.DIST, HYPGEOM.DIST, POISSON.DIST, EXPON.DIST, GAMMA.DIST, GAMMA.INV, BETA.DIST, BETA.INV, CHISQ.DIST, CHISQ.INV, CHISQ.DIST.RT, CHISQ.INV.RT, T.DIST, T.INV, T.DIST.2T, T.INV.2T, T.DIST.RT, F.DIST, F.INV, F.DIST.RT, F.INV.RT, WEIBULL.DIST, LOGNORM.DIST, LOGNORM.INV, CONFIDENCE.NORM, CONFIDENCE.T, Z.TEST, T.TEST, CHISQ.TEST, F.TEST, LINEST, LOGEST, TREND, GROWTH
