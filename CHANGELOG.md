@@ -1,3 +1,12 @@
+## 1.1.0
+
+- **Immediate LAMBDA invocation** — `=LAMBDA(x,x+1)(5)` now returns `6`
+- New `CallExpressionNode` AST node for postfix call expressions
+- Parser supports `expr(args)` syntax for calling function-producing expressions
+- Chained/curried lambdas work: `=LAMBDA(x,LAMBDA(y,x+y))(1)(2)` returns `3`
+- Non-function invocation returns `#VALUE!` (e.g. `=(5)(3)`)
+- 1634 tests passing
+
 ## 1.0.0
 
 - **1.0 release** — 400 built-in functions across 14 categories

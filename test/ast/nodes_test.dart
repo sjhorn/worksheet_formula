@@ -379,6 +379,9 @@ void main() {
         const BinaryOpNode(NumberNode(1), BinaryOperator.add, NumberNode(2)),
         const UnaryOpNode(UnaryOperator.negate, NumberNode(1)),
         const FunctionCallNode('SUM', [NumberNode(1)]),
+        const CallExpressionNode(
+            FunctionCallNode('LAMBDA', [NameNode('x'), NameNode('x')]),
+            [NumberNode(5)]),
         const ParenthesizedNode(NumberNode(1)),
         const NameNode('x'),
       ];
@@ -393,13 +396,15 @@ void main() {
         BinaryOpNode() => 'binaryOp',
         UnaryOpNode() => 'unaryOp',
         FunctionCallNode() => 'functionCall',
+        CallExpressionNode() => 'callExpression',
         ParenthesizedNode() => 'parenthesized',
         NameNode() => 'name',
       }).toList();
 
       expect(types, [
         'number', 'text', 'boolean', 'error', 'cellRef', 'rangeRef',
-        'binaryOp', 'unaryOp', 'functionCall', 'parenthesized', 'name',
+        'binaryOp', 'unaryOp', 'functionCall', 'callExpression',
+        'parenthesized', 'name',
       ]);
     });
   });

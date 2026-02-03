@@ -5,6 +5,7 @@ import 'package:worksheet_formula/src/ast/operators.dart';
 import 'package:worksheet_formula/src/evaluation/context.dart';
 import 'package:worksheet_formula/src/evaluation/errors.dart';
 import 'package:worksheet_formula/src/evaluation/value.dart';
+import 'package:worksheet_formula/src/formula_engine.dart';
 import 'package:worksheet_formula/src/functions/function.dart';
 import 'package:worksheet_formula/src/functions/lambda.dart';
 import 'package:worksheet_formula/src/functions/math.dart';
@@ -1046,6 +1047,49 @@ void main() {
     test('delegates isCancelled to parent', () {
       final scoped = ScopedEvaluationContext(context, {});
       expect(scoped.isCancelled, false);
+    });
+  });
+
+  // ─── Immediate invocation ─────────────────────────────────────────
+
+  group('immediate invocation', () {
+    late FormulaEngine engine;
+    late _TestContext ctx;
+
+    setUp(() {
+      engine = FormulaEngine();
+      ctx = _TestContext(engine.functions);
+    });
+
+    test('LAMBDA(x,x+1)(5) returns 6', () {
+      final result = engine.evaluateString('=LAMBDA(x,x+1)(5)', ctx);
+      expect(result, const NumberValue(6));
+    });
+
+    test('LAMBDA(x,y,x+y)(3,4) returns 7', () {
+      final result = engine.evaluateString('=LAMBDA(x,y,x+y)(3,4)', ctx);
+      expect(result, const NumberValue(7));
+    });
+
+    test('LAMBDA(x,x*2)(0) returns 0', () {
+      final result = engine.evaluateString('=LAMBDA(x,x*2)(0)', ctx);
+      expect(result, const NumberValue(0));
+    });
+
+    test('chained/curried: LAMBDA(x,LAMBDA(y,x+y))(1)(2) returns 3', () {
+      final result =
+          engine.evaluateString('=LAMBDA(x,LAMBDA(y,x+y))(1)(2)', ctx);
+      expect(result, const NumberValue(3));
+    });
+
+    test('no-param lambda: LAMBDA(10)() returns 10', () {
+      final result = engine.evaluateString('=LAMBDA(10)()', ctx);
+      expect(result, const NumberValue(10));
+    });
+
+    test('non-function invocation returns #VALUE!', () {
+      final result = engine.evaluateString('=(5)(3)', ctx);
+      expect(result, const ErrorValue(FormulaError.value));
     });
   });
 

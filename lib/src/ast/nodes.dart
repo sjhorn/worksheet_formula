@@ -262,6 +262,41 @@ class FunctionCallNode extends FormulaNode {
       '$name(${arguments.map((a) => a.toFormulaString()).join(',')})';
 }
 
+/// Immediate call expression: expr(arg1, arg2, ...)
+///
+/// Used for patterns like LAMBDA(x,x+1)(5) where a function-producing
+/// expression is immediately invoked with arguments.
+class CallExpressionNode extends FormulaNode {
+  final FormulaNode function;
+  final List<FormulaNode> arguments;
+
+  const CallExpressionNode(this.function, this.arguments);
+
+  @override
+  FormulaValue evaluate(EvaluationContext context) {
+    final funcVal = function.evaluate(context);
+    if (funcVal.isError) return funcVal;
+    if (funcVal is! FunctionValue) {
+      return const FormulaValue.error(FormulaError.value);
+    }
+    final evaluatedArgs = <FormulaValue>[];
+    for (final arg in arguments) {
+      evaluatedArgs.add(arg.evaluate(context));
+    }
+    return funcVal.invoke(evaluatedArgs);
+  }
+
+  @override
+  Iterable<A1> get cellReferences => [
+        ...function.cellReferences,
+        ...arguments.expand((a) => a.cellReferences),
+      ];
+
+  @override
+  String toFormulaString() =>
+      '${function.toFormulaString()}(${arguments.map((a) => a.toFormulaString()).join(',')})';
+}
+
 /// Parenthesized expression (preserves formatting in toFormulaString).
 class ParenthesizedNode extends FormulaNode {
   final FormulaNode inner;

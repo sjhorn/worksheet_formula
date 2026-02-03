@@ -398,6 +398,32 @@ void main() {
     });
   });
 
+  group('call expressions', () {
+    test('LAMBDA(x,x+1)(5) parses as CallExpressionNode', () {
+      final node = parser.parse('LAMBDA(x,x+1)(5)');
+      expect(node, isA<CallExpressionNode>());
+      final call = node as CallExpressionNode;
+      expect(call.function, isA<FunctionCallNode>());
+      expect((call.function as FunctionCallNode).name, 'LAMBDA');
+      expect(call.arguments.length, 1);
+      expect(call.arguments[0], isA<NumberNode>());
+    });
+
+    test('chained call parses as nested CallExpressionNode', () {
+      final node = parser.parse('LAMBDA(x,LAMBDA(y,x+y))(1)(2)');
+      expect(node, isA<CallExpressionNode>());
+      final outer = node as CallExpressionNode;
+      // The inner part should also be a CallExpressionNode
+      expect(outer.function, isA<CallExpressionNode>());
+      expect(outer.arguments.length, 1);
+    });
+
+    test('parenthesized expression followed by (args) parses as call', () {
+      final node = parser.parse('(LAMBDA(x,x+1))(5)');
+      expect(node, isA<CallExpressionNode>());
+    });
+  });
+
   group('complex expressions', () {
     test('=SUM(A1:A10)*2+1', () {
       final node = parser.parse('=SUM(A1:A10)*2+1');

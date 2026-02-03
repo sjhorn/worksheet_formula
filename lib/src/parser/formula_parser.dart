@@ -200,11 +200,18 @@ class FormulaParser {
     final builder = ExpressionBuilder<FormulaNode>();
     builder.primitive(primary);
 
-    // Postfix: %
-    builder.group().postfix(
-        char('%').trim(),
-        (value, _) =>
-            UnaryOpNode(UnaryOperator.percent, value));
+    // Postfix: (args) for immediate invocation, then %
+    builder.group()
+      ..postfix(
+          (char('(').trim() & argumentList.optional() & char(')').trim()),
+          (value, op) {
+            final args = op[1] as List<FormulaNode>? ?? [];
+            return CallExpressionNode(value, args);
+          })
+      ..postfix(
+          char('%').trim(),
+          (value, _) =>
+              UnaryOpNode(UnaryOperator.percent, value));
 
     // Prefix: -, +
     builder.group()
