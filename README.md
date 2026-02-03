@@ -5,7 +5,7 @@ A standalone formula engine for spreadsheet-like calculations in Dart.
 ## Features
 
 - Excel/Google Sheets compatible formula parsing
-- 239 built-in functions across 9 categories (math, logical, text, statistical, lookup, date, information, array, financial)
+- 309 built-in functions across 10 categories (math, logical, text, statistical, statistical advanced, lookup, date, information, array, financial)
 - Dynamic array functions (FILTER, SORT, UNIQUE, SEQUENCE, etc.)
 - Type-safe formula values with Excel-compatible error handling
 - Cell dependency tracking for efficient recalculation
@@ -103,6 +103,9 @@ final result = engine.evaluateString('=SUM(A1:A2)', context);
 
 ### Financial (40)
 `PMT`, `FV`, `PV`, `NPER`, `RATE`, `IPMT`, `PPMT`, `CUMIPMT`, `CUMPRINC`, `NPV`, `XNPV`, `IRR`, `XIRR`, `MIRR`, `FVSCHEDULE`, `SLN`, `SYD`, `DB`, `DDB`, `VDB`, `PRICE`, `YIELD`, `DURATION`, `MDURATION`, `ACCRINT`, `DISC`, `INTRATE`, `RECEIVED`, `PRICEDISC`, `PRICEMAT`, `TBILLEQ`, `TBILLPRICE`, `TBILLYIELD`, `DOLLARDE`, `DOLLARFR`, `EFFECT`, `NOMINAL`, `PDURATION`, `RRI`, `ISPMT`
+
+### Advanced Statistical & Probability (70)
+`FISHER`, `FISHERINV`, `STANDARDIZE`, `PERMUT`, `PERMUTATIONA`, `DEVSQ`, `KURT`, `SKEW`, `SKEW.P`, `COVARIANCE.P`, `COVARIANCE.S`, `CORREL`, `PEARSON`, `RSQ`, `SLOPE`, `INTERCEPT`, `STEYX`, `FORECAST.LINEAR`, `PROB`, `MODE.MULT`, `STDEVA`, `STDEVPA`, `VARA`, `VARPA`, `GAMMA`, `GAMMALN`, `GAMMALN.PRECISE`, `GAUSS`, `PHI`, `NORM.S.DIST`, `NORM.S.INV`, `NORM.DIST`, `NORM.INV`, `BINOM.DIST`, `BINOM.INV`, `BINOM.DIST.RANGE`, `NEGBINOM.DIST`, `HYPGEOM.DIST`, `POISSON.DIST`, `EXPON.DIST`, `GAMMA.DIST`, `GAMMA.INV`, `BETA.DIST`, `BETA.INV`, `CHISQ.DIST`, `CHISQ.INV`, `CHISQ.DIST.RT`, `CHISQ.INV.RT`, `T.DIST`, `T.INV`, `T.DIST.2T`, `T.INV.2T`, `T.DIST.RT`, `F.DIST`, `F.INV`, `F.DIST.RT`, `F.INV.RT`, `WEIBULL.DIST`, `LOGNORM.DIST`, `LOGNORM.INV`, `CONFIDENCE.NORM`, `CONFIDENCE.T`, `Z.TEST`, `T.TEST`, `CHISQ.TEST`, `F.TEST`, `LINEST`, `LOGEST`, `TREND`, `GROWTH`
 
 ## Custom Functions
 

@@ -7,6 +7,7 @@ import 'logical.dart';
 import 'lookup.dart';
 import 'math.dart';
 import 'statistical.dart';
+import 'statistical_advanced.dart';
 import 'text.dart';
 
 /// Registry of available formula functions.
@@ -25,6 +26,7 @@ class FunctionRegistry {
       registerInformationFunctions(this);
       registerArrayFunctions(this);
       registerFinancialFunctions(this);
+      registerAdvancedStatisticalFunctions(this);
     }
   }
 

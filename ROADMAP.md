@@ -5,7 +5,7 @@ prioritised by real-world usage frequency.
 
 ## Current State
 
-**239 functions** across 9 categories:
+**309 functions** across 10 categories:
 
 | Category | Count | Functions |
 |----------|-------|-----------|
@@ -18,6 +18,7 @@ prioritised by real-world usage frequency.
 | Information | 15 | ISBLANK, ISERROR, ISNUMBER, ISTEXT, ISLOGICAL, ISNA, TYPE, ISERR, ISNONTEXT, ISEVEN, ISODD, ISREF, N, NA, ERROR.TYPE |
 | Dynamic Array | 17 | SEQUENCE, RANDARRAY, TOCOL, TOROW, WRAPROWS, WRAPCOLS, CHOOSEROWS, CHOOSECOLS, DROP, TAKE, EXPAND, HSTACK, VSTACK, FILTER, UNIQUE, SORT, SORTBY |
 | Financial | 40 | PMT, FV, PV, NPER, RATE, IPMT, PPMT, CUMIPMT, CUMPRINC, NPV, XNPV, IRR, XIRR, MIRR, FVSCHEDULE, SLN, SYD, DB, DDB, VDB, PRICE, YIELD, DURATION, MDURATION, ACCRINT, DISC, INTRATE, RECEIVED, PRICEDISC, PRICEMAT, TBILLEQ, TBILLPRICE, TBILLYIELD, DOLLARDE, DOLLARFR, EFFECT, NOMINAL, PDURATION, RRI, ISPMT |
+| Adv. Statistical | 70 | FISHER, FISHERINV, STANDARDIZE, PERMUT, PERMUTATIONA, DEVSQ, KURT, SKEW, SKEW.P, COVARIANCE.P, COVARIANCE.S, CORREL, PEARSON, RSQ, SLOPE, INTERCEPT, STEYX, FORECAST.LINEAR, PROB, MODE.MULT, STDEVA, STDEVPA, VARA, VARPA, GAMMA, GAMMALN, GAMMALN.PRECISE, GAUSS, PHI, NORM.S.DIST, NORM.S.INV, NORM.DIST, NORM.INV, BINOM.DIST, BINOM.INV, BINOM.DIST.RANGE, NEGBINOM.DIST, HYPGEOM.DIST, POISSON.DIST, EXPON.DIST, GAMMA.DIST, GAMMA.INV, BETA.DIST, BETA.INV, CHISQ.DIST, CHISQ.INV, CHISQ.DIST.RT, CHISQ.INV.RT, T.DIST, T.INV, T.DIST.2T, T.INV.2T, T.DIST.RT, F.DIST, F.INV, F.DIST.RT, F.INV.RT, WEIBULL.DIST, LOGNORM.DIST, LOGNORM.INV, CONFIDENCE.NORM, CONFIDENCE.T, Z.TEST, T.TEST, CHISQ.TEST, F.TEST, LINEST, LOGEST, TREND, GROWTH |
 
 ---
 
@@ -353,9 +354,10 @@ New category file: `lib/src/functions/financial.dart`.
 
 ---
 
-## Phase 5 — Advanced Statistical & Probability
+## Phase 5 — Advanced Statistical & Probability ✅ Complete
 
-Functions used in data analysis, quality control, and academic work.
+All 70 functions implemented and tested (1173 tests passing).
+New category file: `lib/src/functions/statistical_advanced.dart`.
 
 ### Distributions
 
@@ -447,7 +449,7 @@ Functions used in data analysis, quality control, and academic work.
 | VARA | Variance including text/logical |
 | VARPA | Pop variance including text/logical |
 
-**Phase 5 total: ~70 functions → brings library to ~313 functions**
+**Phase 5 total: 70 functions → brought library from 239 to 309 functions**
 
 ---
 
@@ -606,11 +608,11 @@ Requires lambda / closure support in the formula engine.
 | 2 | Extended essentials | 87 | 182 | Done |
 | 3 | Dynamic arrays | 17 | 199 | Done |
 | 4 | Financial | 40 | 239 | Done |
-| 5 | Advanced statistics | ~70 | ~309 | |
+| 5 | Advanced statistics | 70 | 309 | Done |
 | 6 | Engineering | ~54 | ~363 | |
 | 7 | Database | 12 | ~375 | |
 | 8 | Lambda / higher-order | 9 | ~384 | |
 | 9 | Remaining & niche | ~18 | ~402+ | |
 
-Phases 1–4 are complete, covering the functions the vast majority of users need plus dynamic array support and financial functions.
-Phases 5–9 provide specialist and completeness coverage.
+Phases 1–5 are complete, covering the functions the vast majority of users need plus dynamic array support, financial functions, and advanced statistical/probability distributions.
+Phases 6–9 provide specialist and completeness coverage.
