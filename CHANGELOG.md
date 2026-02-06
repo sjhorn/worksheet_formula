@@ -1,3 +1,8 @@
+## 1.1.1
+
+- **Per-category function reference docs** — 14 new markdown files in `doc/functions/` with signatures, descriptions, and examples for all 400 built-in functions
+- README updated with links from each category heading and function name to its detailed reference entry
+
 ## 1.1.0
 
 - **Immediate LAMBDA invocation** — `=LAMBDA(x,x+1)(5)` now returns `6`
